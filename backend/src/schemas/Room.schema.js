@@ -36,8 +36,8 @@ const roomSchema = new Schema(
 			},
 			botDifficult: {
 				type: String,
-				default: '70',
-				enum: ['25', '45', '70', '90'],
+				default: '12',
+				enum: ['5', '8', '12', '20'],
 			},
 			isBotHelper: { type: Boolean, default: false },
 		},
