@@ -25,6 +25,7 @@ export default function ResultScreen() {
 	)
 	const roomPlayers = useSelector((state: RootState) => state.room.players)
 	const gameSetting = useSelector((state: RootState) => state.room.gameRules)
+	const gameData = useSelector((state: RootState) => state.game)
 
 	// Kết hợp avatar từ roomPlayers vào playersInGame
 	const players = playersInGame
@@ -32,6 +33,18 @@ export default function ResultScreen() {
 			const roomPlayer = roomPlayers.find(
 				(rp) => rp.playerId === p.playerId,
 			)
+			// Lấy kết quả từng câu cho player này
+			const puzzleResults = gameSetting.gameRound
+				? Array.from({ length: Number(gameSetting.gameRound) }).map(
+						(_, idx) => {
+							const puzzle = gameData.puzzles[idx]
+							const playerPuzzle = puzzle?.playerPuzzleData?.find(
+								(pp) => pp.playerId === p.playerId,
+							)
+							return playerPuzzle?.gameStatus || 'lost'
+						},
+				  )
+				: []
 			return {
 				id: p.playerId,
 				name: p.playerName || roomPlayer?.playerName || 'Người chơi',
@@ -41,6 +54,8 @@ export default function ResultScreen() {
 				score: p.totalScore,
 				rank: p.rank,
 				isCurrentUser: p.playerId === currentUserId,
+				isBot: roomPlayer?.state === 'bot',
+				puzzleResults, // ['win', 'lost', ...]
 			}
 		})
 		.sort((a, b) => a.rank - b.rank)

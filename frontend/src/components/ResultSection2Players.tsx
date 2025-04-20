@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ArrowRight, Crown, Medal } from 'lucide-react'
+import { ArrowRight, Crown, Medal, Diamond } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 export default function ResultSection2Players({ players }) {
@@ -21,6 +21,19 @@ export default function ResultSection2Players({ players }) {
 
 				{/* Score */}
 				<div className="mt-8 mb-4">
+					<div className="flex items-center gap-2 mt-2">
+						{players[0]?.puzzleResults?.map((status, idx) => (
+							<Diamond
+								key={idx}
+								className={`w-5 h-5 ${
+									status === 'win'
+										? 'text-cyan-500'
+										: 'text-gray-400'
+								}`}
+								fill={status === 'win' ? '#06b6d4' : '#d1d5db'}
+							/>
+						))}
+					</div>
 					<div className="text-4xl font-bold text-yellow-800 tracking-widest">
 						{players[0]?.score?.toLocaleString()}
 					</div>
@@ -36,7 +49,12 @@ export default function ResultSection2Players({ players }) {
 							{players[0]?.name}
 						</div>
 						<div className="text-xs text-yellow-700">
-							Người chơi 1
+							Người chơi 1{' '}
+							{players[0]?.isBot && (
+								<span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold">
+									Bot
+								</span>
+							)}
 						</div>
 					</div>
 					<div className="w-12 h-12 bg-yellow-100 rounded-full overflow-hidden border-4 border-yellow-400">
@@ -65,6 +83,21 @@ export default function ResultSection2Players({ players }) {
 
 					{/* Score */}
 					<div className="mt-8 mb-4">
+						<div className="flex items-center gap-2 mt-2">
+							{players[1]?.puzzleResults?.map((status, idx) => (
+								<Diamond
+									key={idx}
+									className={`w-5 h-5 ${
+										status === 'win'
+											? 'text-green-500'
+											: 'text-gray-400'
+									}`}
+									fill={
+										status === 'win' ? '#06b6d4' : '#d1d5db'
+									}
+								/>
+							))}
+						</div>
 						<div className="text-4xl font-bold text-gray-700 tracking-widest">
 							{players[1]?.score?.toLocaleString()}
 						</div>
@@ -80,7 +113,12 @@ export default function ResultSection2Players({ players }) {
 								{players[1]?.name}
 							</div>
 							<div className="text-xs text-gray-500">
-								Người chơi 2
+								Người chơi 2{' '}
+								{players[1]?.isBot && (
+									<span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 font-semibold">
+										Bot
+									</span>
+								)}
 							</div>
 						</div>
 						<div className="w-12 h-12 bg-gray-100 rounded-full overflow-hidden border-4 border-gray-300">

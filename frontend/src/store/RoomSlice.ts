@@ -1,6 +1,7 @@
 import { IPlayer, IRoomRules } from '@/types/type'
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
+import { RootState } from './store' // hoặc đường dẫn tới file store của bạn
 
 interface RoomState {
 	currentPlayerId: string | null
@@ -93,6 +94,34 @@ export const counterSlice = createSlice({
 		resetRoom: () => initialState,
 	},
 })
+
+// Selector sắp xếp lại danh sách players
+export const selectSortedPlayers = (state: RootState) => {
+	const roomState = state.room // hoặc tên slice bạn đặt trong combineReducers
+	const owner = roomState.players.find((p) => p.state === 'owner')
+	const bot = roomState.players.find((p) => p.state === 'bot')
+	const current =
+		roomState.currentPlayerId &&
+		roomState.players.find(
+			(p) =>
+				p.playerId === roomState.currentPlayerId &&
+				p.state !== 'owner' &&
+				p.state !== 'bot',
+		)
+	const others = roomState.players.filter(
+		(p) =>
+			p !== owner &&
+			p !== bot &&
+			(!current || p.playerId !== current.playerId),
+	)
+	const sorted = [
+		...(owner ? [owner] : []),
+		...(bot ? [bot] : []),
+		...(current ? [current] : []),
+		...others,
+	]
+	return sorted
+}
 
 export const {
 	setCurrentPlayerId,

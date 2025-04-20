@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Star, ArrowRight, Award, Crown, Medal } from 'lucide-react'
+import { Star, ArrowRight, Award, Crown, Medal, Diamond } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 export default function ResultSectionMultiPlayers({ players, topPlayers }) {
@@ -147,8 +147,8 @@ export default function ResultSectionMultiPlayers({ players, topPlayers }) {
 					{/* Header row */}
 					<div className="grid grid-cols-12 bg-gray-100 p-3 text-sm font-medium text-gray-600">
 						<div className="col-span-2 text-center">Hạng</div>
-						<div className="col-span-7">Người chơi</div>
-						<div className="col-span-3 text-right">Điểm</div>
+						<div className="col-span-5">Người chơi</div>
+						<div className="col-span-5 text-right">Điểm</div>
 					</div>
 
 					{/* Player rows */}
@@ -183,7 +183,7 @@ export default function ResultSectionMultiPlayers({ players, topPlayers }) {
 										{player.rank}
 									</div>
 								</div>
-								<div className="col-span-7 flex items-center gap-2">
+								<div className="col-span-5 flex items-center gap-2">
 									<div className="w-8 h-8 rounded-full overflow-hidden">
 										<img
 											src={
@@ -194,17 +194,42 @@ export default function ResultSectionMultiPlayers({ players, topPlayers }) {
 											className="w-full h-full object-cover"
 										/>
 									</div>
-									<div className="font-medium text-gray-800">
+									<div className="font-medium text-gray-800 flex items-center gap-2">
 										{player.name}
+										{player.isBot && (
+											<span className="text-xs text-blue-600">
+												(Bot)
+											</span>
+										)}
 										{player.isCurrentUser && (
-											<span className="ml-1 text-xs text-blue-600">
+											<span className="text-xs text-green-600">
 												(Bạn)
 											</span>
 										)}
 									</div>
 								</div>
-								<div className="col-span-3 text-right font-medium text-gray-800">
-									{player.score.toLocaleString()}
+								<div className="col-span-5 text-right font-medium text-gray-800 flex justify-end items-center gap-2">
+									{/* Hiển thị chuỗi win/lost */}
+									<div className="flex gap-1">
+										{player.puzzleResults?.map(
+											(status, idx) => (
+												<Diamond
+													key={idx}
+													className={`w-4 h-4 ${
+														status === 'win'
+															? 'text-cyan-500'
+															: 'text-gray-400'
+													}`}
+													fill={
+														status === 'win'
+															? '#06b6d4'
+															: '#d1d5db'
+													}
+												/>
+											),
+										)}
+									</div>
+									<span>{player.score.toLocaleString()}</span>
 								</div>
 							</motion.div>
 						))}
