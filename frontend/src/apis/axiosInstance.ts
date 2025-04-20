@@ -1,7 +1,9 @@
 // axiosInstance.js
 import axios from 'axios'
 
-const backendUrl = 'https://real-unlikely-mastiff.ngrok-free.app'
+const backendUrl =
+	import.meta.env.VITE_BACKEND_URL ||
+	'https://real-unlikely-mastiff.ngrok-free.app'
 
 const axiosInstance = axios.create({
 	baseURL: `${backendUrl}/api`,
