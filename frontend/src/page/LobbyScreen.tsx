@@ -409,17 +409,17 @@ export default function LobbyScreen() {
 										<SelectValue placeholder="Chọn thời gian" />
 									</SelectTrigger>
 									<SelectContent className="bg-gray-300">
-										<SelectItem value="90">
-											(Dễ) 90 giây
+										<SelectItem value="20">
+											(Dễ) 20 giây
 										</SelectItem>
-										<SelectItem value="70" defaultChecked>
-											(Trung Bình) 70 giây
+										<SelectItem value="12" defaultChecked>
+											(Trung Bình) 12 giây
 										</SelectItem>
-										<SelectItem value="45">
-											(Khó) 45 giây
+										<SelectItem value="8">
+											(Khó) 8 giây
 										</SelectItem>
-										<SelectItem value="25">
-											(Siêu khó) 25 giây
+										<SelectItem value="5">
+											(Siêu khó) 5 giây
 										</SelectItem>
 									</SelectContent>
 								</Select>

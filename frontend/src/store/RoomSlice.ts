@@ -22,7 +22,7 @@ const initialState: RoomState = {
 	gameRules: {
 		gameRound: '5',
 		roundTime: '120',
-		botDifficult: '70',
+		botDifficult: '12',
 		isBotHelper: false,
 	},
 }

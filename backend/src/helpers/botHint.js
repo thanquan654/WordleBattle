@@ -162,6 +162,15 @@ function findBestGuessWithEntropy(fullWordSet, guesses, wordLength) {
 		return possibleWords[0]
 	}
 
+	// Nếu còn rất ít từ, trả về ngẫu nhiên một từ trong possibleWords
+	if (possibleWords.length <= 5) {
+		const randomIdx = Math.floor(Math.random() * possibleWords.length)
+		const guessWord = possibleWords[randomIdx]
+
+		console.log(`Từ ngẫu nhiên: ${guessWord}`)
+		return guessWord
+	}
+
 	let bestGuess = null
 	let maxEntropy = -1
 
@@ -170,8 +179,6 @@ function findBestGuessWithEntropy(fullWordSet, guesses, wordLength) {
 	console.log(
 		`Bắt đầu tính Entropy cho ${candidateGuessWords.length} từ đoán tiềm năng (độ dài ${wordLength})...`,
 	)
-	let checkedCount = 0
-	const totalCandidates = candidateGuessWords.length
 	const startTime = Date.now()
 
 	for (const potentialGuess of candidateGuessWords) {
@@ -184,16 +191,6 @@ function findBestGuessWithEntropy(fullWordSet, guesses, wordLength) {
 		if (entropy > maxEntropy) {
 			maxEntropy = entropy
 			bestGuess = potentialGuess
-		}
-
-		checkedCount++
-		if (checkedCount % 500 === 0 || checkedCount === totalCandidates) {
-			const elapsedTime = (Date.now() - startTime) / 1000
-			console.log(
-				`Đã kiểm tra ${checkedCount}/${totalCandidates} từ (độ dài ${wordLength})... (Thời gian: ${elapsedTime.toFixed(
-					1,
-				)}s)`,
-			)
 		}
 	}
 	const totalTime = (Date.now() - startTime) / 1000

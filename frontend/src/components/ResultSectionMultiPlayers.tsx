@@ -214,15 +214,17 @@ export default function ResultSectionMultiPlayers({ players, topPlayers }) {
 
 			{/* Action buttons */}
 			<div className="p-6 pt-0 flex flex-col sm:flex-row gap-3">
-				<motion.button
-					className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-					whileHover={{ scale: 1.02 }}
-					whileTap={{ scale: 0.98 }}
-					onClick={() => navigate('/')}
-				>
-					<span>Chơi tiếp</span>
-					<ArrowRight className="w-5 h-5" />
-				</motion.button>
+				<a href="/" className="flex-1 flex">
+					<motion.button
+						className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+						whileHover={{ scale: 1.02 }}
+						whileTap={{ scale: 0.98 }}
+						onClick={() => navigate('/')}
+					>
+						<span>Chơi tiếp</span>
+						<ArrowRight className="w-5 h-5" />
+					</motion.button>
+				</a>
 
 				{/* <motion.button
 					className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
