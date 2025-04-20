@@ -20,6 +20,7 @@ import {
 	setGameFinished,
 	setPlayerInGame,
 } from '@/store/GameSlice'
+import { useAudioManager } from '@/hooks/audio'
 
 // Game state types
 type CellStatus = 'empty' | 'correct' | 'present' | 'absent' | 'tbd'
@@ -87,8 +88,10 @@ export default function GameScreen() {
 		currentRemainingTime: 0,
 	})
 
-	// Handle Websocket events
+	// Handle audio
+	const { playSFX } = useAudioManager()
 
+	// Handle Websocket events
 	useEffect(() => {
 		socket.on('nextPuzzle', ({ currentPuzzleIndex, playersInGame }) => {
 			// Hiện endGameCard trước khi chuyển sang puzzle mới
@@ -274,7 +277,8 @@ export default function GameScreen() {
 		if (currentRow >= boardRow) return // Game over
 
 		if (key === '⌫') {
-			// Handle backspace
+			// Xóa ký tự
+			playSFX('type_letter')
 			if (currentCol > 0) {
 				const newBoard = [...board]
 				newBoard[currentRow][currentCol - 1] = {
@@ -285,14 +289,16 @@ export default function GameScreen() {
 				setCurrentCol(currentCol - 1)
 			}
 		} else if (key === 'ENTER') {
-			// Handle enter - check word
+			// Kiểm tra từ
+			playSFX('type_letter')
 			if (currentCol === boardCol) {
 				checkWord()
 				setCurrentRow(currentRow + 1)
 				setCurrentCol(0)
 			}
 		} else if (currentCol < boardCol) {
-			// Handle letter input
+			// Nhập ký tự
+			playSFX('type_letter')
 			const newBoard = [...board]
 			newBoard[currentRow][currentCol] = { letter: key, feedback: 'tbd' }
 			setBoard(newBoard)
@@ -350,6 +356,7 @@ export default function GameScreen() {
 		)
 
 		if (isCorrect) {
+			playSFX('solve_secret_word')
 			setEndGameCardData({
 				isFindSecretWord: true,
 				currentRemainingTime: timeRemaining,
@@ -362,6 +369,7 @@ export default function GameScreen() {
 				timeRemaining,
 			)
 		} else if (currentRow + 1 === boardRow) {
+			playSFX('wrong_secret_word')
 			// Hết lượt mà chưa đúng
 			setEndGameCardData({
 				isFindSecretWord: false,
@@ -374,6 +382,8 @@ export default function GameScreen() {
 				gameState.currentPuzzleIndex,
 				timeRemaining,
 			)
+		} else {
+			playSFX('wrong_secret_word')
 		}
 
 		setBoard(newBoard)

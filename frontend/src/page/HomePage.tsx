@@ -68,7 +68,6 @@ export default function HomePage() {
 			const respone = await getRoomInfo(roomId)
 
 			if (respone?.status === 200) {
-				// TODO: Join room
 				const userId = localStorage.getItem('userId') ?? uuidv4()
 				localStorage.setItem('userId', userId)
 				localStorage.setItem('name', userName)

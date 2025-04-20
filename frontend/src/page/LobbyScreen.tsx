@@ -34,7 +34,6 @@ import {
 	setBotId,
 	setCurrentPlayerId,
 	setGameRules,
-	setGameState,
 	setPlayers,
 	setRoomId,
 	selectSortedPlayers,
@@ -67,7 +66,6 @@ export default function LobbyScreen() {
 	const maxPlayers = useSelector((state: RootState) => state.room.maxPlayers)
 	const botId = useSelector((state: RootState) => state.room.botId)
 
-	const [gameStarted, setGameStarted] = useState(false)
 	const [showHelp, setShowHelp] = useState(false)
 
 	// Check if all players are ready

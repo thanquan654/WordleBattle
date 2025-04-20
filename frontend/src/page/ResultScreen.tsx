@@ -12,6 +12,7 @@ import { resetRoom } from '@/store/RoomSlice'
 import { leaveARoom } from '@/apis/apiService'
 import ResultSectionMultiPlayers from '@/components/ResultSectionMultiPlayers'
 import ResultSection2Players from '@/components/ResultSection2Players'
+import { useAudioManager } from '@/hooks/audio'
 
 export default function ResultScreen() {
 	const dispatch = useDispatch()
@@ -67,6 +68,14 @@ export default function ResultScreen() {
 		width: typeof window !== 'undefined' ? window.innerWidth : 0,
 		height: typeof window !== 'undefined' ? window.innerHeight : 0,
 	})
+
+	// Handle audio
+	const { playBGM, stopBGM } = useAudioManager()
+
+	useEffect(() => {
+		playBGM('bgm_result')
+		return () => stopBGM()
+	}, [playBGM, stopBGM])
 
 	// Update window size for confetti
 	useEffect(() => {
