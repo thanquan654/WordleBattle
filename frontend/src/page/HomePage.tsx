@@ -12,6 +12,7 @@ import {
 	setRoomId as setRoomIdAction,
 } from '@/store/RoomSlice'
 import { v4 as uuidv4 } from 'uuid'
+import HelpModal from '@/components/HelpModal'
 
 export default function HomePage() {
 	const [userName, setUserName] = useState<string>(
@@ -20,6 +21,7 @@ export default function HomePage() {
 	const [roomId, setRoomId] = useState<string>('')
 	const [userNameErrorMessage, setUserNameErrorMessage] = useState<string>('')
 	const [roomIdErrorMessage, setRoomIdErrorMessage] = useState<string>('')
+	const [showHelp, setShowHelp] = useState(false)
 
 	const navigator = useNavigate()
 	const dispatch = useDispatch()
@@ -99,6 +101,8 @@ export default function HomePage() {
 		<div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4 overflow-hidden">
 			{/* Background animated tiles */}
 			<AnimatedBackground variant="square" />
+
+			<HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
 
 			<motion.div
 				className="relative bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20"
@@ -262,6 +266,7 @@ export default function HomePage() {
 						<Button
 							variant="outline"
 							className="w-full dark border border-white/20 text-white hover:bg-white/10 py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
+							onClick={() => setShowHelp(true)}
 						>
 							<BookOpen className="h-4 w-4" />
 							Hướng dẫn chơi

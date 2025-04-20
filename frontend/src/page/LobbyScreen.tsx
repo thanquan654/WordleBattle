@@ -26,6 +26,7 @@ import AnimatedBackground from '@/components/AnimatedBackground'
 import GameHeader from '@/components/GameHeader'
 import PlayerCard from '@/components/PlayerCard'
 import EmptyPlayerCard from '@/components/EmptyPlayerCard'
+import HelpModal from '@/components/HelpModal'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/store/store'
 import {
@@ -36,6 +37,7 @@ import {
 	setGameState,
 	setPlayers,
 	setRoomId,
+	selectSortedPlayers,
 } from '@/store/RoomSlice'
 import {
 	changeRoomRules,
@@ -55,12 +57,18 @@ export default function LobbyScreen() {
 		(state: RootState) => state.room.currentPlayerId,
 	)
 	const roomId = useParams().roomId
-	const players = useSelector((state: RootState) => state.room.players)
+	const players = useSelector((state: RootState) =>
+		selectSortedPlayers(state),
+	)
+
+	console.log('🚀 ~ players:', players)
+
 	const gameSetting = useSelector((state: RootState) => state.room.gameRules)
 	const maxPlayers = useSelector((state: RootState) => state.room.maxPlayers)
 	const botId = useSelector((state: RootState) => state.room.botId)
 
 	const [gameStarted, setGameStarted] = useState(false)
+	const [showHelp, setShowHelp] = useState(false)
 
 	// Check if all players are ready
 	const allPlayersReady = players.every(
@@ -196,6 +204,7 @@ export default function LobbyScreen() {
 		<div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center px-4 pt-4">
 			{/* Animated background elements */}
 			<AnimatedBackground variant="character" />
+			<HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
 
 			<motion.div
 				className="bg-white/10 backdrop-blur-sm rounded-t-2xl shadow-2xl w-full max-w-3xl overflow-hidden"
@@ -229,8 +238,11 @@ export default function LobbyScreen() {
 							/>
 						</div>
 					</div>
-					{/* TODO: Implement help */}
-					<button className="p-2 rounded-full hover:bg-white/20 transition">
+					{/* Help button */}
+					<button
+						className="p-2 rounded-full hover:bg-white/20 transition"
+						onClick={() => setShowHelp(true)}
+					>
 						<HelpCircle className="w-5 h-5" />
 					</button>
 				</GameHeader>
