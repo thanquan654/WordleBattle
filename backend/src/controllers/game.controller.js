@@ -362,7 +362,7 @@ const runBotForPuzzle = async (gameId, puzzleIndex, botPlayerId, roundTime) => {
 
 		try {
 			await axios.post(
-				`https://real-unlikely-mastiff.ngrok-free.app/api/game/${gameId}/guess`,
+				`https://localhost:${process.env.PORT}/api/game/${gameId}/guess`,
 				{
 					playerId: botPlayerId,
 					puzzleIndex,

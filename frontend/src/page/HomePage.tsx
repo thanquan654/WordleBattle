@@ -1,20 +1,30 @@
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { motion } from 'framer-motion'
-import { Sparkles, Users, BookOpen, Play, LogIn } from 'lucide-react'
+// Logic
 import { useState } from 'react'
 import { createRoom, getRoomInfo, joinARoom } from '@/apis/apiService'
 import { useNavigate } from 'react-router'
-import AnimatedBackground from '@/components/AnimatedBackground'
 import { useDispatch } from 'react-redux'
 import {
 	setCurrentPlayerId,
 	setRoomId as setRoomIdAction,
 } from '@/store/RoomSlice'
 import { v4 as uuidv4 } from 'uuid'
-import HelpModal from '@/components/HelpModal'
+import { motion } from 'framer-motion'
+// UI Components
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Sparkles, Users, BookOpen, Play, LogIn } from 'lucide-react'
+import AnimatedBackground from '@/components/AnimatedBackground'
+import HowToPlayModal from '@/components/HowToPlayModal'
+import GameLogo from '@/components/ui/game-logo'
+import HomePanel from '@/components/HomeScreen/HomePanel'
+import ModeCard from '@/components/HomeScreen/ModeCard'
 
 export default function HomePage() {
+	// Utils
+	const navigator = useNavigate()
+	const dispatch = useDispatch()
+
+	// States
 	const [userName, setUserName] = useState<string>(
 		localStorage.getItem('name') ?? '',
 	)
@@ -23,9 +33,7 @@ export default function HomePage() {
 	const [roomIdErrorMessage, setRoomIdErrorMessage] = useState<string>('')
 	const [showHelp, setShowHelp] = useState(false)
 
-	const navigator = useNavigate()
-	const dispatch = useDispatch()
-
+	// Handlers
 	const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setUserName(event.target.value)
 		setUserNameErrorMessage('')
@@ -101,78 +109,14 @@ export default function HomePage() {
 			{/* Background animated tiles */}
 			<AnimatedBackground variant="square" />
 
-			<HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
+			<HowToPlayModal
+				open={showHelp}
+				onClose={() => setShowHelp(false)}
+			/>
 
-			<motion.div
-				className="relative bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 w-full max-w-md border border-white/20"
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.5 }}
-			>
+			<HomePanel>
 				{/* Logo */}
-				<div className="flex justify-center mb-8">
-					<div className="grid grid-rows-2 gap-2">
-						{/* WORDLE row */}
-						<div className="flex space-x-1">
-							{['W', 'O', 'R', 'D', 'L', 'E'].map(
-								(letter, index) => (
-									<motion.div
-										key={`wordle-${index}`}
-										className={`${
-											index % 3 === 0
-												? 'bg-[#6aaa64]'
-												: // Green (correct)
-												index % 3 === 1
-												? 'bg-[#c9b458]'
-												: // Yellow (present)
-												  'bg-[#787c7e]' // Gray (absent)
-										} w-10 h-10 flex items-center justify-center rounded-md text-white font-bold text-xl shadow-lg`}
-										initial={{ rotateX: 0 }}
-										animate={{ rotateX: 360 }}
-										transition={{
-											duration: 1.5,
-											delay: index * 0.1,
-											repeat: Number.POSITIVE_INFINITY,
-											repeatDelay: 5,
-										}}
-									>
-										{letter}
-									</motion.div>
-								),
-							)}
-						</div>
-
-						{/* BATTLE row */}
-						<div className="flex space-x-1">
-							{['B', 'A', 'T', 'T', 'L', 'E'].map(
-								(letter, index) => (
-									<motion.div
-										key={`battle-${index}`}
-										className={`${
-											index % 3 === 0
-												? 'bg-[#787c7e]'
-												: // Gray (absent)
-												index % 3 === 1
-												? 'bg-[#6aaa64]'
-												: // Green (correct)
-												  'bg-[#c9b458]' // Yellow (present)
-										} w-10 h-10 flex items-center justify-center rounded-md text-white font-bold text-xl shadow-lg`}
-										initial={{ rotateX: 0 }}
-										animate={{ rotateX: 360 }}
-										transition={{
-											duration: 1.5,
-											delay: index * 0.1 + 0.3,
-											repeat: Number.POSITIVE_INFINITY,
-											repeatDelay: 5,
-										}}
-									>
-										{letter}
-									</motion.div>
-								),
-							)}
-						</div>
-					</div>
-				</div>
+				<GameLogo />
 
 				{/* Username Input */}
 				<div className="relative my-6">
@@ -195,16 +139,8 @@ export default function HomePage() {
 					animate={{ opacity: 1 }}
 					transition={{ delay: 0.3, duration: 0.5 }}
 				>
-					{/* Single player section */}
-					<motion.div
-						className="space-y-4 bg-white/5 p-5 rounded-xl border border-white/10"
-						whileHover={{ scale: 1.02 }}
-						transition={{
-							type: 'spring',
-							stiffness: 400,
-							damping: 10,
-						}}
-					>
+					{/* Single player Card */}
+					<ModeCard>
 						<h2 className="text-white font-bold flex items-center gap-2 mb-3">
 							<Sparkles className="h-5 w-5 text-yellow-400" />
 							Chế độ đơn
@@ -217,9 +153,9 @@ export default function HomePage() {
 							<Play className="h-4 w-4" />
 							Chơi ngay
 						</Button>
-					</motion.div>
+					</ModeCard>
 
-					{/* Multiplayer section */}
+					{/* Multiplayer Card */}
 					<motion.div
 						className="space-y-4 bg-white/5 p-5 rounded-xl border border-white/10"
 						whileHover={{ scale: 1.02 }}
@@ -264,7 +200,7 @@ export default function HomePage() {
 					>
 						<Button
 							variant="outline"
-							className="w-full dark border border-white/20 text-white hover:bg-white/10 py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
+							className="w-full dark border bg-white/5 border-white/20 text-white hover:bg-white/10 py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
 							onClick={() => setShowHelp(true)}
 						>
 							<BookOpen className="h-4 w-4" />
@@ -274,9 +210,9 @@ export default function HomePage() {
 				</motion.div>
 
 				{/* Decorative elements */}
-				<div className="absolute -top-10 -right-10 w-20 h-20 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
-				<div className="absolute -bottom-10 -left-10 w-20 h-20 bg-purple-500 rounded-full blur-3xl opacity-20"></div>
-			</motion.div>
+				<div className="absolute -top-10 -right-10 w-20 h-20 bg-blue-500 rounded-full blur-3xl opacity-3 0"></div>
+				<div className="absolute -bottom-10 -left-10 w-20 h-20 bg-purple-500 rounded-full blur-3xl opacity-30"></div>
+			</HomePanel>
 		</div>
 	)
 }
