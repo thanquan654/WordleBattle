@@ -77,13 +77,15 @@ export const useHomeAction = () => {
 
 				navigator('/lobby/' + respone?.data.roomId)
 				return true
-			} else if (respone?.status === 404) {
-				setErrors((prev) => ({
-					...prev,
-					searchRoom: 'Phòng không tồn tại hoặc đang chơi',
-				}))
-				return false
 			}
+		} else if (respone?.status === 404) {
+			setErrors((prev) => ({
+				...prev,
+				searchRoom: 'Phòng không tồn tại hoặc đang chơi',
+			}))
+
+			setLoading(false)
+			return false
 		}
 
 		setLoading(false)
