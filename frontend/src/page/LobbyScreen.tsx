@@ -26,7 +26,7 @@ import AnimatedBackground from '@/components/AnimatedBackground'
 import GameHeader from '@/components/GameHeader'
 import PlayerCard from '@/components/PlayerCard'
 import EmptyPlayerCard from '@/components/EmptyPlayerCard'
-import HelpModal from '@/components/HelpModal'
+import HelpModal from '@/components/HowToPlayModal'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@/store/store'
 import {

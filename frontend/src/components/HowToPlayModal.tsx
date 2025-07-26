@@ -6,7 +6,7 @@ const TABS = [
 	{ key: 'score', label: 'Cách tính điểm' },
 ]
 
-export default function HelpModal({
+export default function HowToPlayModal({
 	open,
 	onClose,
 }: {
@@ -20,6 +20,7 @@ export default function HelpModal({
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
 			<div className="bg-slate-700 mx-4 border border-white/10 rounded-xl shadow-2xl w-full max-w-md relative">
+				{/* Header */}
 				<div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
 					<span className="font-mono text-base text-white">
 						Hướng dẫn chơi
@@ -31,6 +32,8 @@ export default function HelpModal({
 						×
 					</button>
 				</div>
+
+				{/* Tab navigation */}
 				<div className="flex border-b border-white/10 bg-slate-800">
 					{TABS.map((t) => (
 						<button
@@ -46,6 +49,8 @@ export default function HelpModal({
 						</button>
 					))}
 				</div>
+
+				{/* Tab content */}
 				<div className="p-4 min-h-[220px] max-h-[60vh] text-white overflow-y-auto">
 					{tab === 'game' && (
 						<div>
