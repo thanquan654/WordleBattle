@@ -1,13 +1,5 @@
 // Logic
 import { useState } from 'react'
-import { createRoom, getRoomInfo, joinARoom } from '@/apis/apiService'
-import { useNavigate } from 'react-router'
-import { useDispatch } from 'react-redux'
-import {
-	setCurrentPlayerId,
-	setRoomId as setRoomIdAction,
-} from '@/store/RoomSlice'
-import { v4 as uuidv4 } from 'uuid'
 import { motion } from 'framer-motion'
 // UI Components
 import { Input } from '@/components/ui/input'
@@ -18,89 +10,41 @@ import HowToPlayModal from '@/components/HowToPlayModal'
 import GameLogo from '@/components/ui/game-logo'
 import HomePanel from '@/components/HomeScreen/HomePanel'
 import ModeCard from '@/components/HomeScreen/ModeCard'
+// Custom Hooks
+import { useHomeForm } from '@/hooks/homeScreen/form'
+import { useHomeAction } from '@/hooks/homeScreen/action'
 
 export default function HomePage() {
-	// Utils
-	const navigator = useNavigate()
-	const dispatch = useDispatch()
-
 	// States
-	const [userName, setUserName] = useState<string>(
-		localStorage.getItem('name') ?? '',
-	)
-	const [roomId, setRoomId] = useState<string>('')
-	const [userNameErrorMessage, setUserNameErrorMessage] = useState<string>('')
-	const [roomIdErrorMessage, setRoomIdErrorMessage] = useState<string>('')
-	const [showHelp, setShowHelp] = useState(false)
+	const {
+		userName,
+		roomId,
+		errors: formErrors,
+		setUserName,
+		setRoomId,
+		validateForm,
+	} = useHomeForm()
+	const {
+		errors: actionErrors,
+		isLoading,
+		handleQuickPlay,
+		handleSearchRoom,
+	} = useHomeAction()
+	const [isShowHelpModal, setShowHelpModal] = useState(false)
 
 	// Handlers
-	const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setUserName(event.target.value)
-		setUserNameErrorMessage('')
-	}
-
-	const handleRoomIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setRoomId(event.target.value.toUpperCase())
-		setRoomIdErrorMessage('')
-	}
-
 	const handleClickPlayBtn = async (mode: 'quickPlay' | 'searchRoom') => {
-		if (!userName) {
-			setUserNameErrorMessage('Vui lòng nhập tên trước khi chơi')
-			return
-		}
-		if ((!roomId || roomId.length !== 4) && mode === 'searchRoom') {
-			setRoomIdErrorMessage('Mã phòng có độ dài 4 ký tự')
+		const isValid = validateForm(mode)
+
+		if (!isValid) {
 			return
 		}
 
 		if (mode === 'quickPlay') {
-			const userId = localStorage.getItem('userId') ?? uuidv4()
-			const respone = await createRoom(userId, userName)
-
-			if (respone?.status === 200) {
-				dispatch(setCurrentPlayerId(userId))
-				dispatch(setRoomIdAction(respone.data.roomId))
-
-				localStorage.setItem('userId', userId)
-				localStorage.setItem('name', userName)
-
-				navigator('/lobby/' + respone.data.roomId)
-			} else {
-				setUserNameErrorMessage(
-					'Có lỗi xảy ra trong quá trình tạo phòng mới',
-				)
-			}
+			await handleQuickPlay(userName)
 		}
 		if (mode === 'searchRoom') {
-			const respone = await getRoomInfo(roomId)
-
-			if (respone?.status === 200) {
-				const userId = localStorage.getItem('userId') ?? uuidv4()
-				localStorage.setItem('userId', userId)
-				localStorage.setItem('name', userName)
-
-				const respone2 = await joinARoom(roomId, {
-					id: userId,
-					name: userName,
-					isBot: false,
-				})
-
-				if (respone2?.status === 200) {
-					dispatch(setRoomIdAction(respone2?.data.roomId))
-
-					navigator('/lobby/' + respone2?.data.roomId)
-				} else {
-					setRoomIdErrorMessage(
-						'Có lỗi xảy ra trong quá trình tìm phòng',
-					)
-				}
-			}
-			if (respone?.status === 404) {
-				setRoomIdErrorMessage('Không tìm thấy phòng')
-			} else {
-				setRoomIdErrorMessage('Có lỗi xảy ra trong quá trình tìm phòng')
-			}
+			await handleSearchRoom(roomId, userName)
 		}
 	}
 
@@ -110,8 +54,8 @@ export default function HomePage() {
 			<AnimatedBackground variant="square" />
 
 			<HowToPlayModal
-				open={showHelp}
-				onClose={() => setShowHelp(false)}
+				open={isShowHelpModal}
+				onClose={() => setShowHelpModal(false)}
 			/>
 
 			<HomePanel>
@@ -124,12 +68,12 @@ export default function HomePage() {
 						<Input
 							placeholder="Tên hiển thị"
 							value={userName}
-							onChange={handleNameChange}
+							onChange={(e) => setUserName(e.target.value)}
 							className="w-full rounded-lg p-3 pl-4 text-center bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
 						/>
 					</div>
 					<p className="text-xs text-red-600 text-center">
-						{userNameErrorMessage}
+						{formErrors.userName}
 					</p>
 				</div>
 
@@ -149,10 +93,14 @@ export default function HomePage() {
 						<Button
 							className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-4 rounded-lg transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 font-medium cursor-pointer"
 							onClick={() => handleClickPlayBtn('quickPlay')}
+							disabled={isLoading}
 						>
 							<Play className="h-4 w-4" />
 							Chơi ngay
 						</Button>
+						<p className="text-xs text-red-600 text-center">
+							{actionErrors.quickPlay}
+						</p>
 					</ModeCard>
 
 					{/* Multiplayer Card */}
@@ -175,21 +123,27 @@ export default function HomePage() {
 								placeholder="Nhập mã phòng"
 								value={roomId}
 								min={8}
-								onChange={handleRoomIdChange}
+								onChange={(e) =>
+									setRoomId(e.target.value.toUpperCase())
+								}
 								className="w-full rounded-lg text-center p-3 pl-4 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all"
 							/>
 							<p className="text-xs text-red-600 text-center">
-								{roomIdErrorMessage}
+								{formErrors.roomId}
 							</p>
 						</div>
 
 						<Button
 							className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-lg transition-all shadow-lg shadow-green-500/30 flex items-center justify-center gap-2 font-medium cursor-pointer"
 							onClick={() => handleClickPlayBtn('searchRoom')}
+							disabled={isLoading}
 						>
 							<LogIn className="h-4 w-4" />
 							Tham gia
 						</Button>
+						<p className="text-xs text-red-600 text-center">
+							{actionErrors.searchRoom}
+						</p>
 					</motion.div>
 
 					{/* How to play button */}
@@ -201,7 +155,7 @@ export default function HomePage() {
 						<Button
 							variant="outline"
 							className="w-full dark border bg-white/5 border-white/20 text-white hover:bg-white/10 py-3 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
-							onClick={() => setShowHelp(true)}
+							onClick={() => setShowHelpModal(true)}
 						>
 							<BookOpen className="h-4 w-4" />
 							Hướng dẫn chơi
