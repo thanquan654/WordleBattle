@@ -30,7 +30,6 @@ const io = new Server(server, {
 })
 global.__io = io
 
-// ✅ Sử dụng async function để chạy mọi thứ đúng thứ tự
 const main = async () => {
 	try {
 		await makeWordList()
@@ -46,10 +45,10 @@ const main = async () => {
 		global.__io.on('connection', WebSocketConnection)
 
 		server.listen(port, () => {
-			console.log(`🚀 Server đang chạy tại http://localhost:${port}`)
+			console.log(`🚀 Server running on http://localhost:${port}`)
 		})
 	} catch (error) {
-		console.error('❌ Lỗi trong quá trình khởi động:', error)
+		console.error('❌ Error when start server:', error)
 		process.exit(1)
 	}
 }

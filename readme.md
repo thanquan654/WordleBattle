@@ -48,14 +48,14 @@ PORT=3001
 MONGODB_URI=mongodb://localhost:27017/wordle-battle
 ```
 
--   Thay đổi `MONGODB_URI` nếu bạn dùng MongoDB cloud hoặc cổng khác.
+-   Thay đổi `MONGODB_URI` nếu bạn dùng Mongo Atlas hoặc cổng khác.
 
 ### Frontend
 
-File `.env` trong thư mục `frontend` (đã có sẵn):
+File `.env` trong thư mục `frontend`:
 
 ```env
-BACKEND_URL=http://localhost:3001
+VITE_BACKEND_URL=http://localhost:3001
 ```
 
 -   Nếu backend chạy ở địa chỉ khác, hãy cập nhật lại biến này.
