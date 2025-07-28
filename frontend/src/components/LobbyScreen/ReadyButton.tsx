@@ -58,6 +58,7 @@ export default function ReadyButton({
 				whileTap={{ scale: 0.98 }}
 				onClick={() =>
 					handleChangeState(
+						currentPlayerId,
 						players.find(
 							(player) => player.playerId === currentPlayerId,
 						)?.state === 'ready'
