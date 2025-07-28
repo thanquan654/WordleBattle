@@ -20,7 +20,7 @@ import {
 	setGameFinished,
 	setPlayerInGame,
 } from '@/store/GameSlice'
-import { useAudioManager } from '@/hooks/audio'
+import { useAudioManager } from '@/hooks/useAudioManager'
 
 // Game state types
 type CellStatus = 'empty' | 'correct' | 'present' | 'absent' | 'tbd'
