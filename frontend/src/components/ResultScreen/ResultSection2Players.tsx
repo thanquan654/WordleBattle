@@ -1,22 +1,12 @@
-import ResultPlayerCard from '@/components/ResultPlayerCard'
+import ResultPlayerCard from '@/components/ResultScreen/ResultPlayerCard'
+import { PlayerResult } from '@/hooks/useGameResult'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
-
-type Players = {
-	id: string
-	name: string
-	avatar: string
-	score: number
-	rank: number
-	isCurrentUser: boolean
-	isBot: boolean
-	puzzleResults: ('playing' | 'win' | 'lost')[]
-}[]
 
 export default function ResultSection2Players({
 	players,
 }: {
-	players: Players
+	players: PlayerResult[]
 }) {
 	return (
 		<div className="p-6 bg-white/10 backdrop-blur-xl rounded-b-2xl space-y-4">

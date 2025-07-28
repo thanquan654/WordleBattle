@@ -1,23 +1,13 @@
+import { PlayerResult } from '@/hooks/useGameResult'
 import { motion } from 'framer-motion'
 import { Crown, Diamond, Medal } from 'lucide-react'
-
-type Player = {
-	id: string
-	name: string
-	avatar: string
-	score: number
-	rank: number
-	isCurrentUser: boolean
-	isBot: boolean
-	puzzleResults: ('playing' | 'win' | 'lost')[]
-}
 
 export default function ResultPlayerCard({
 	player,
 	playerIndex,
 	isWinner,
 }: {
-	player: Player
+	player: PlayerResult
 	playerIndex: number
 	isWinner: boolean
 }) {
