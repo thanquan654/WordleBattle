@@ -34,7 +34,7 @@ const getStatusIcon = (status: PlayerStatus) => {
 	}
 }
 
-export default function PlayerCard({
+export default function LobbyPlayerCard({
 	name,
 	status,
 	isCurrentUser,
