@@ -2,17 +2,18 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 // UI Components
+import AppBackground from '@/components/AppBackground'
+import AnimatedBackground from '@/components/AnimatedBackground'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Sparkles, Users, BookOpen, Play, LogIn } from 'lucide-react'
-import AnimatedBackground from '@/components/AnimatedBackground'
 import HowToPlayModal from '@/components/HowToPlayModal'
 import GameLogo from '@/components/ui/game-logo'
 import HomePanel from '@/components/HomeScreen/HomePanel'
 import ModeCard from '@/components/HomeScreen/ModeCard'
 // Custom Hooks
-import { useHomeForm } from '@/hooks/homeScreen/form'
-import { useHomeAction } from '@/hooks/homeScreen/action'
+import { useHomeForm } from '@/hooks/useHomeForm'
+import { useHomeAction } from '@/hooks/useHomeAction'
 
 export default function HomePage() {
 	// States
@@ -49,7 +50,7 @@ export default function HomePage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4 overflow-hidden">
+		<AppBackground className="p-4 overflow-hidden">
 			{/* Background animated tiles */}
 			<AnimatedBackground variant="square" />
 
@@ -167,6 +168,6 @@ export default function HomePage() {
 				<div className="absolute -top-10 -right-10 w-20 h-20 bg-blue-500 rounded-full blur-3xl opacity-3 0"></div>
 				<div className="absolute -bottom-10 -left-10 w-20 h-20 bg-purple-500 rounded-full blur-3xl opacity-30"></div>
 			</HomePanel>
-		</div>
+		</AppBackground>
 	)
 }

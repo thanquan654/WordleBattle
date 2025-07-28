@@ -1,23 +1,28 @@
-'use client'
-
+// Logic
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Medal, Crown, ArrowRight, LogOut, Star, Award } from 'lucide-react'
 import Confetti from 'react-confetti'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { RootState } from '@/store/store'
-import { useNavigate } from 'react-router'
-import { resetRoom } from '@/store/RoomSlice'
-// import { resetGame } from '@/store/GameSlice' // Nếu có
-import { leaveARoom } from '@/apis/apiService'
+
+// UI Components
+import AppBackground from '@/components/AppBackground'
+import AnimatedBackground from '@/components/AnimatedBackground'
+import MainPagePanel from '@/components/MainPagePanel'
 import ResultSectionMultiPlayers from '@/components/ResultSectionMultiPlayers'
 import ResultSection2Players from '@/components/ResultSection2Players'
-import { useAudioManager } from '@/hooks/audio'
+
+type Players = {
+	id: string
+	name: string
+	avatar: string
+	score: number
+	rank: number
+	isCurrentUser: boolean
+	isBot: boolean
+	puzzleResults: ('playing' | 'win' | 'lost')[]
+}[]
 
 export default function ResultScreen() {
-	const dispatch = useDispatch()
-	const navigator = useNavigate()
-	const roomId = useSelector((state: RootState) => state.room.roomId)
 	const currentUserId = useSelector(
 		(state: RootState) => state.room.currentPlayerId,
 	)
@@ -69,14 +74,6 @@ export default function ResultScreen() {
 		height: typeof window !== 'undefined' ? window.innerHeight : 0,
 	})
 
-	// Handle audio
-	const { playBGM, stopBGM } = useAudioManager()
-
-	useEffect(() => {
-		playBGM('bgm_result')
-		return () => stopBGM()
-	}, [playBGM, stopBGM])
-
 	// Update window size for confetti
 	useEffect(() => {
 		const handleResize = () => {
@@ -100,7 +97,7 @@ export default function ResultScreen() {
 	}, [])
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center px-4 pt-4">
+		<AppBackground className="px-4 pt-4">
 			{/* Confetti effect */}
 			{showConfetti && (
 				<Confetti
@@ -112,44 +109,17 @@ export default function ResultScreen() {
 			)}
 
 			{/* Background animated tiles */}
-			<div className="absolute inset-0 overflow-hidden opacity-10">
-				{Array.from({ length: 20 }).map((_, i) => (
-					<motion.div
-						key={i}
-						className="absolute w-16 h-16 border-2 border-white rounded-md"
-						initial={{
-							x: Math.random() * window.innerWidth,
-							y: Math.random() * window.innerHeight,
-							rotate: 0,
-						}}
-						animate={{
-							x: Math.random() * window.innerWidth,
-							y: Math.random() * window.innerHeight,
-							rotate: 360,
-						}}
-						transition={{
-							duration: 20 + Math.random() * 10,
-							repeat: Number.POSITIVE_INFINITY,
-							repeatType: 'reverse',
-						}}
-					/>
-				))}
-			</div>
+			<AnimatedBackground variant="square" />
 
-			<motion.div
-				className="bg-white/90 backdrop-blur-sm rounded-t-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
-				initial={{ opacity: 0, y: 1000 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 1 }}
-			>
+			<MainPagePanel>
 				{/* Header */}
 				<div className="bg-gradient-to-r from-slate-800 to-slate-700 p-6 text-center text-white">
 					<h1 className="text-2xl font-bold mb-1">
 						Kết Quả Trận Đấu
 					</h1>
-					<p className="text-white/80">
-						Wordle Battle - Vòng {gameSetting.gameRound}/
-						{gameSetting.gameRound} hoàn thành
+					<p className="text-white/80 text-sm">
+						Hoàn thành {gameSetting.gameRound}/
+						{gameSetting.gameRound} vòng
 					</p>
 				</div>
 
@@ -161,7 +131,7 @@ export default function ResultScreen() {
 				) : (
 					<ResultSection2Players players={players} />
 				)}
-			</motion.div>
-		</div>
+			</MainPagePanel>
+		</AppBackground>
 	)
 }
