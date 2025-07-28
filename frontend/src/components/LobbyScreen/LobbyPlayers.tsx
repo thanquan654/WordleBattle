@@ -2,7 +2,6 @@ import EmptyPlayerCard from '@/components/EmptyPlayerCard'
 import LobbyPlayerCard from '@/components/LobbyScreen/LobbyPlayerCard'
 import { Button } from '@/components/ui/button'
 import { Bot, BotOff, Users } from 'lucide-react'
-import React from 'react'
 
 export default function LobbyPlayers({
 	players,
@@ -29,7 +28,7 @@ export default function LobbyPlayers({
 					) && (
 						<Button
 							className="flex items-center space-x-2 bg-transparent border-[1px] border-indigo-600 hover:bg-white/10 cursor-pointer"
-							onClick={handleAddOrRemoveBot}
+							onClick={() => handleAddOrRemoveBot(botId)}
 						>
 							{!botId ? (
 								<>

@@ -1,55 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-	ArrowLeft,
-	HelpCircle,
-	Check,
-	Clock,
-	Settings,
-	Users,
-	HelpingHand,
-	Bot,
-	Repeat,
-	BotOff,
-} from 'lucide-react'
-import { Switch } from '@/components/ui/switch'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { useNavigate, useParams } from 'react-router'
-import AnimatedBackground from '@/components/AnimatedBackground'
+import { useParams } from 'react-router'
 import GameHeader from '@/components/GameHeader'
-import PlayerCard from '@/components/LobbyScreen/LobbyPlayerCard'
-import EmptyPlayerCard from '@/components/EmptyPlayerCard'
-import HelpModal from '@/components/HowToPlayModal'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { RootState } from '@/store/store'
-import {
-	resetRoom,
-	setBotId,
-	setCurrentPlayerId,
-	setGameRules,
-	setPlayers,
-	setRoomId,
-	selectSortedPlayers,
-} from '@/store/RoomSlice'
-import {
-	changeRoomRules,
-	changeState,
-	getRoomInfo,
-	joinARoom,
-	leaveARoom,
-	startGame,
-} from '@/apis/apiService'
-import { v4 as uuidv4 } from 'uuid'
-import { socket } from '@/lib/socket'
-import { IGameResponseWebsocket, IPlayer } from '@/types/type'
-import { setInGameState } from '@/store/GameSlice'
+import { selectSortedPlayers } from '@/store/RoomSlice'
+// Hooks
+import { useLobbySocket } from '@/hooks/useLobbySocket'
+import { useLobbyAction } from '@/hooks/useLobbyAction'
+import { useLobbyPlayers } from '@/hooks/useLobbyPlayers'
+// UI Components
+import { ArrowLeft, HelpCircle } from 'lucide-react'
+import AnimatedBackground from '@/components/AnimatedBackground'
+import HelpModal from '@/components/HowToPlayModal'
 import AppBackground from '@/components/AppBackground'
 import MainPagePanel from '@/components/MainPagePanel'
 import ReadyButton from '@/components/LobbyScreen/ReadyButton'
@@ -57,151 +20,26 @@ import LobbySetting from '@/components/LobbyScreen/LobbySetting'
 import LobbyPlayers from '@/components/LobbyScreen/LobbyPlayers'
 
 export default function LobbyScreen() {
-	const currentPlayerId = useSelector(
-		(state: RootState) => state.room.currentPlayerId,
-	)
+	// State
 	const roomId = useParams().roomId
-	const players = useSelector((state: RootState) =>
-		selectSortedPlayers(state),
-	)
-
-	console.log('🚀 ~ players:', players)
-
-	const gameSetting = useSelector((state: RootState) => state.room.gameRules)
-	const maxPlayers = useSelector((state: RootState) => state.room.maxPlayers)
-	const botId = useSelector((state: RootState) => state.room.botId)
+	const { currentPlayerId, players, gameSetting, botId, maxPlayers } =
+		useSelector((state: RootState) => ({
+			currentPlayerId: state.room.currentPlayerId,
+			players: selectSortedPlayers(state),
+			gameSetting: state.room.gameRules,
+			botId: state.room.botId,
+			maxPlayers: state.room.maxPlayers,
+		}))
 
 	const [showHelp, setShowHelp] = useState(false)
 
-	// Check if all players are ready
-	const allPlayersReady = players.every(
-		(player) =>
-			player.state === 'ready' ||
-			(player.state === 'owner' && player.playerId === currentPlayerId) ||
-			player.state === 'bot',
+	// Hooks
+	useLobbySocket(roomId as string, gameSetting)
+	const { handleChangeSettings, handleChangeState, handleStartGame } =
+		useLobbyAction(roomId as string)
+	const { handleAddOrRemoveBot, handleLeaveRoom } = useLobbyPlayers(
+		roomId as string,
 	)
-
-	const dispatch = useDispatch()
-	const navigator = useNavigate()
-
-	useEffect(() => {
-		socket.on('connect', () => {
-			console.log(`user connected ${socket.id}`)
-		})
-		socket.emit('subcribeRoom', roomId as string) // Đảm bảo tên event đúng với backend
-		return () => {
-			socket.off('connect')
-		}
-	}, [roomId])
-
-	useEffect(() => {
-		socket.on('updateRoom', (players: IPlayer[]) => {
-			console.log('🚀 ~ Update players:', players)
-
-			dispatch(setPlayers(players))
-		})
-
-		socket.on('joinRoom', (player: IPlayer[]) => {
-			console.log('🚀 ~ New player:', player)
-		})
-
-		socket.on('leaveRoom', (playerId: string) => {
-			console.log('🚀 ~ Leave player:', playerId)
-		})
-
-		socket.on('updateRoomRules', (roomRules: typeof gameSetting) => {
-			dispatch(setGameRules(roomRules))
-		})
-
-		socket.on('startGame', (gameRespone: IGameResponseWebsocket) => {
-			console.log('🚀 ~ gameRespone:', gameRespone)
-			dispatch(setInGameState(gameRespone as IGameResponseWebsocket))
-
-			navigator(`/game/${gameRespone.gameId}`, {
-				state: gameSetting,
-			})
-		})
-
-		return () => {
-			socket.off('updateRoom')
-			socket.off('joinRoom')
-			socket.off('leaveRoom')
-			socket.off('updateRoomRules')
-			socket.off('startGame')
-		}
-	}, [dispatch, gameSetting, navigator])
-
-	useEffect(() => {
-		getRoomInfo(roomId as string).then((respone) => {
-			dispatch(setCurrentPlayerId(localStorage.getItem('userId')))
-			dispatch(setRoomId(respone?.data.roomId))
-			dispatch(setPlayers(respone?.data.players))
-			// Lấy gameRules từ backend
-			if (respone?.data.gameRules) {
-				dispatch(setGameRules(respone?.data.gameRules))
-			}
-			// Check room has bot
-			if (
-				respone?.data.players.find(
-					(player: IPlayer) => player.state === 'bot',
-				)
-			) {
-				dispatch(
-					setBotId(
-						respone?.data.players.find(
-							(player: IPlayer) => player.state === 'bot',
-						)?.playerId,
-					),
-				)
-			}
-		})
-	}, [roomId, dispatch])
-
-	const handleChangeSettings = (settings: typeof gameSetting) => {
-		changeRoomRules(roomId as string, settings) // settings là gameRules
-	}
-
-	const handleLeaveRoom = async () => {
-		const respone = await leaveARoom(
-			roomId as string,
-			currentPlayerId as string,
-		)
-		if (respone?.status === 200) {
-			socket.emit('leaveRoom', roomId as string)
-
-			dispatch(resetRoom())
-			navigator('/')
-		}
-	}
-
-	const handleAddOrRemoveBot = async () => {
-		const currentBotId = botId ?? uuidv4()
-		if (botId) {
-			const respone = await leaveARoom(roomId as string, currentBotId)
-
-			if (respone?.status === 200) {
-				dispatch(setBotId(null))
-			}
-		} else {
-			const respone = await joinARoom(roomId as string, {
-				id: currentBotId,
-				name: 'Daisy',
-				isBot: true,
-			})
-
-			if (respone?.status === 200) {
-				dispatch(setBotId(currentBotId))
-			}
-		}
-	}
-
-	const handleChangeState = async (state: string) => {
-		await changeState(roomId as string, currentPlayerId as string, state)
-	}
-
-	const handleStartGame = async () => {
-		await startGame(roomId as string)
-	}
 
 	return (
 		<AppBackground className=" px-4 pt-4">
@@ -214,9 +52,9 @@ export default function LobbyScreen() {
 				<GameHeader>
 					<button
 						className="p-2 rounded-full hover:bg-white/20 transition"
-						onClick={() => {
-							handleLeaveRoom()
-						}}
+						onClick={() =>
+							handleLeaveRoom(currentPlayerId as string)
+						}
 					>
 						<ArrowLeft className="w-5 h-5" />
 					</button>
@@ -257,10 +95,9 @@ export default function LobbyScreen() {
 
 					<LobbySetting
 						players={players}
-						gameSetting={gameSetting}
 						currentPlayerId={currentPlayerId}
+						gameSetting={gameSetting}
 						handleChangeSettings={handleChangeSettings}
-						handleChangeState={handleChangeState}
 						botId={botId}
 					/>
 
@@ -269,7 +106,6 @@ export default function LobbyScreen() {
 						currentPlayerId={currentPlayerId}
 						handleChangeState={handleChangeState}
 						handleStartGame={handleStartGame}
-						allPlayersReady={allPlayersReady}
 					/>
 				</div>
 			</MainPagePanel>

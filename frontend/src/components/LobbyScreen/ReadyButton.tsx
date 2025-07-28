@@ -1,17 +1,23 @@
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
-import React from 'react'
 
 export default function ReadyButton({
 	players,
 	currentPlayerId,
-	allPlayersReady,
 	handleStartGame,
 	handleChangeState,
 }) {
 	const playerState = players.find(
 		(player) => player.playerId === currentPlayerId,
 	)?.state
+
+	// Check if all players are ready
+	const allPlayersReady = players.every(
+		(player) =>
+			player.state === 'ready' ||
+			(player.state === 'owner' && player.playerId === currentPlayerId) ||
+			player.state === 'bot',
+	)
 
 	if (playerState === 'owner') {
 		return (

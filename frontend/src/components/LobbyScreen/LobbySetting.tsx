@@ -13,7 +13,6 @@ export default function LobbySetting({
 	players,
 	currentPlayerId,
 	handleChangeSettings,
-	handleChangeState,
 	gameSetting,
 	botId,
 }) {
