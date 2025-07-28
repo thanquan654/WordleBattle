@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button'
 import { useNavigate, useParams } from 'react-router'
 import AnimatedBackground from '@/components/AnimatedBackground'
 import GameHeader from '@/components/GameHeader'
-import PlayerCard from '@/components/PlayerCard'
+import PlayerCard from '@/components/LobbyScreen/LobbyPlayerCard'
 import EmptyPlayerCard from '@/components/EmptyPlayerCard'
 import HelpModal from '@/components/HowToPlayModal'
 import { useDispatch, useSelector } from 'react-redux'
@@ -50,6 +50,11 @@ import { v4 as uuidv4 } from 'uuid'
 import { socket } from '@/lib/socket'
 import { IGameResponseWebsocket, IPlayer } from '@/types/type'
 import { setInGameState } from '@/store/GameSlice'
+import AppBackground from '@/components/AppBackground'
+import MainPagePanel from '@/components/MainPagePanel'
+import ReadyButton from '@/components/LobbyScreen/ReadyButton'
+import LobbySetting from '@/components/LobbyScreen/LobbySetting'
+import LobbyPlayers from '@/components/LobbyScreen/LobbyPlayers'
 
 export default function LobbyScreen() {
 	const currentPlayerId = useSelector(
@@ -199,17 +204,12 @@ export default function LobbyScreen() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center px-4 pt-4">
+		<AppBackground className=" px-4 pt-4">
 			{/* Animated background elements */}
 			<AnimatedBackground variant="character" />
 			<HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
 
-			<motion.div
-				className="bg-white/10 backdrop-blur-sm rounded-t-2xl shadow-2xl w-full max-w-3xl overflow-hidden"
-				initial={{ opacity: 0, y: 1000 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 1 }}
-			>
+			<MainPagePanel className="">
 				{/* Header */}
 				<GameHeader>
 					<button
@@ -247,279 +247,32 @@ export default function LobbyScreen() {
 
 				{/* Main content */}
 				<div className="p-6">
-					{/* Section title */}
-					<div className="flex items-center justify-between mb-6">
-						<div className="flex items-center space-x-2">
-							<Users className="w-5 h-5 text-indigo-600" />
-							<h2 className="text-lg font-semibold text-white">
-								Người chơi
-							</h2>
-						</div>
-						<div className="flex gap-4 items-center">
-							{players.find(
-								(player) =>
-									player.playerId === currentPlayerId &&
-									player.state === 'owner',
-							) && (
-								<Button
-									className="flex items-center space-x-2 bg-transparent border-[1px] border-indigo-600 hover:bg-white/10 cursor-pointer"
-									onClick={handleAddOrRemoveBot}
-								>
-									{!botId ? (
-										<>
-											<Bot className="w-5 h-5 text-indigo-600" />
-											<span>Thêm BOT</span>
-										</>
-									) : (
-										<>
-											<BotOff className="w-5 h-5 text-indigo-600" />
-											<span>Xóa BOT</span>
-										</>
-									)}
-								</Button>
-							)}
-							<div className="text-sm text-gray-300">
-								{players.length}/{maxPlayers}
-							</div>
-						</div>
-					</div>
+					<LobbyPlayers
+						players={players}
+						currentPlayerId={currentPlayerId}
+						handleAddOrRemoveBot={handleAddOrRemoveBot}
+						botId={botId}
+						maxPlayers={maxPlayers}
+					/>
 
-					{/* Players grid */}
-					<div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-						{/* Render existing players */}
-						{players.map((player, index) => {
-							if (index < 6) {
-								return (
-									<PlayerCard
-										key={player.playerId}
-										name={player.playerName}
-										status={player.state}
-										avartar={player.avatar}
-										isCurrentUser={
-											player.playerId === currentPlayerId
-										}
-									/>
-								)
-							} else {
-								return <></>
-							}
-						})}
+					<LobbySetting
+						players={players}
+						gameSetting={gameSetting}
+						currentPlayerId={currentPlayerId}
+						handleChangeSettings={handleChangeSettings}
+						handleChangeState={handleChangeState}
+						botId={botId}
+					/>
 
-						{/* Empty slots */}
-						{Array.from({
-							length: 6 - players.length,
-						}).map((_, index) => (
-							<EmptyPlayerCard key={`empty-${index}`} />
-						))}
-					</div>
-
-					{/* Settings section (only available for room owner) */}
-					<motion.div
-						className="bg-white/10 rounded-xl p-4 mb-6 relative"
-						initial={{ opacity: 0, height: 0 }}
-						animate={{ opacity: 1, height: 'auto' }}
-						transition={{ duration: 0.3 }}
-					>
-						{players.find((p) => p.playerId === currentPlayerId)
-							?.state !== 'owner' && (
-							<div className="absolute inset-0 z-10 rounded-xl bg-gray-400 opacity-70"></div>
-						)}
-						<div className="flex items-center space-x-2 mb-4">
-							<Settings className="w-5 h-5 text-indigo-600" />
-							<h3 className="font-semibold text-white">
-								Cài đặt phòng
-							</h3>
-						</div>
-
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white ">
-							{/* Number of rounds */}
-							<div className="space-y-2 ">
-								<label className="text-sm text-gray-300 flex items-center space-x-2">
-									<Repeat className="w-4 h-4 text-gray-500" />
-									<span>Số vòng đấu</span>
-								</label>
-								<Select
-									value={gameSetting.gameRound}
-									onValueChange={(value) =>
-										handleChangeSettings({
-											...gameSetting,
-											gameRound: value,
-										})
-									}
-								>
-									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Chọn số vòng" />
-									</SelectTrigger>
-									<SelectContent className="bg-gray-300">
-										<SelectItem value="3">
-											3 vòng
-										</SelectItem>
-										<SelectItem value="4">
-											4 vòng
-										</SelectItem>
-										<SelectItem value="5">
-											5 vòng
-										</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							{/* Turn time */}
-							<div className="space-y-2">
-								<label className="text-sm text-gray-300 flex items-center space-x-2">
-									<Clock className="w-4 h-4 text-gray-500" />
-									<span>Thời gian mỗi lượt</span>
-								</label>
-								<Select
-									value={gameSetting.roundTime}
-									onValueChange={(value) =>
-										handleChangeSettings({
-											...gameSetting,
-											roundTime: value,
-										})
-									}
-								>
-									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Chọn thời gian" />
-									</SelectTrigger>
-									<SelectContent className="bg-gray-300">
-										<SelectItem value="90">
-											90 giây
-										</SelectItem>
-										<SelectItem value="120" defaultChecked>
-											120 giây
-										</SelectItem>
-										<SelectItem value="150">
-											150 giây
-										</SelectItem>
-										<SelectItem value="180">
-											180 giây
-										</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							{/* BOT guess */}
-							<div className="flex justify-between flex-col space-y-1">
-								<label className="text-sm text-gray-300 flex items-center space-x-2">
-									<Clock className="w-4 h-4 text-gray-500" />
-									<span>Độ khó của BOT</span>
-								</label>
-								<Select
-									value={gameSetting.botDifficult}
-									onValueChange={(value) =>
-										handleChangeSettings({
-											...gameSetting,
-											botDifficult: value,
-										})
-									}
-									disabled={!botId}
-								>
-									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Chọn thời gian" />
-									</SelectTrigger>
-									<SelectContent className="bg-gray-300">
-										<SelectItem value="20">
-											(Dễ) 20 giây
-										</SelectItem>
-										<SelectItem value="12" defaultChecked>
-											(Trung Bình) 12 giây
-										</SelectItem>
-										<SelectItem value="8">
-											(Khó) 8 giây
-										</SelectItem>
-										<SelectItem value="5">
-											(Siêu khó) 5 giây
-										</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							{/* Use BOT hints */}
-							<div className="flex items-center justify-between">
-								<label className="text-sm text-gray-300 flex items-center space-x-2">
-									<HelpingHand className="w-4 h-4 text-gray-500" />
-									<span>Sử dụng BOT hỗ trợ</span>
-								</label>
-								<Switch
-									checked={gameSetting.isBotHelper}
-									onCheckedChange={(checked) =>
-										handleChangeSettings({
-											...gameSetting,
-											isBotHelper: checked,
-										})
-									}
-									className="dark"
-								/>
-							</div>
-						</div>
-					</motion.div>
-
-					{/* Ready button */}
-					{players.find(
-						(player) => player.playerId === currentPlayerId,
-					)?.state === 'owner' ? (
-						// Owner ready button
-						<motion.button
-							className={`w-full py-3 px-4 rounded-xl text-white font-medium flex items-center justify-center space-x-2 transition-all ${
-								allPlayersReady
-									? 'bg-emerald-500 hover:bg-emerald-600'
-									: ' bg-white/10 text-white py-3 px-4 rounded-lg transition-all shadow-lg  '
-							} ${allPlayersReady ? 'animate-pulse' : ''}`}
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-							onClick={handleStartGame}
-							disabled={!allPlayersReady}
-						>
-							{allPlayersReady ? (
-								<>
-									<Check className="w-5 h-5" />
-									<span>Bắt đầu game</span>
-								</>
-							) : (
-								<span>
-									Hãy đợi tất cả người chơi trong phòng sẵn
-									sàng ...
-								</span>
-							)}
-						</motion.button>
-					) : (
-						<motion.button
-							className={`w-full py-3 px-4 rounded-xl text-white font-medium flex items-center justify-center space-x-2 transition-all ${
-								players.find(
-									(player) =>
-										player.playerId === currentPlayerId,
-								)?.state === 'ready'
-									? 'bg-emerald-500 hover:bg-emerald-600'
-									: 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-4 rounded-lg transition-all shadow-lg shadow-blue-500/30 '
-							} ${allPlayersReady ? 'animate-pulse' : ''}`}
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-							onClick={() =>
-								handleChangeState(
-									players.find(
-										(player) =>
-											player.playerId === currentPlayerId,
-									)?.state === 'ready'
-										? 'waiting'
-										: 'ready',
-								)
-							}
-						>
-							{players.find(
-								(player) => player.playerId === currentPlayerId,
-							)?.state === 'ready' ? (
-								<>
-									<Check className="w-5 h-5" />
-									<span>Đã sẵn sàng</span>
-								</>
-							) : (
-								<span>Sẵn sàng</span>
-							)}
-						</motion.button>
-					)}
+					<ReadyButton
+						players={players}
+						currentPlayerId={currentPlayerId}
+						handleChangeState={handleChangeState}
+						handleStartGame={handleStartGame}
+						allPlayersReady={allPlayersReady}
+					/>
 				</div>
-			</motion.div>
-		</div>
+			</MainPagePanel>
+		</AppBackground>
 	)
 }
