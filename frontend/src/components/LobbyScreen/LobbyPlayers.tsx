@@ -1,4 +1,4 @@
-import EmptyPlayerCard from '@/components/EmptyPlayerCard'
+import EmptyPlayerCard from '@/components/LobbyScreen/EmptyPlayerCard'
 import LobbyPlayerCard from '@/components/LobbyScreen/LobbyPlayerCard'
 import { Button } from '@/components/ui/button'
 import { Bot, BotOff, Users } from 'lucide-react'

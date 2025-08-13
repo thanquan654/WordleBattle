@@ -1,31 +1,28 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import {
-	ArrowLeft,
-	Trophy,
-	Clock,
-	Lightbulb,
-	Delete,
-	CornerDownLeft,
-} from 'lucide-react'
+import { ArrowLeft, Trophy, Clock, Lightbulb } from 'lucide-react'
 import { socket } from '@/lib/socket'
 import { IRoomRules } from '@/types/type'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '@/store/store'
 import { useLocation, useNavigate } from 'react-router'
 import { checkGuess, completeAPuzzle, getBotHint } from '@/apis/apiService'
-import EndRoundCard from '@/components/EndRoundCard'
 import {
 	setCurrentPuzzleIndex,
 	setGameFinished,
 	setPlayerInGame,
 } from '@/store/GameSlice'
 import { useAudioManager } from '@/hooks/useAudioManager'
+import AnimatedBackground from '@/components/AnimatedBackground'
+import MainPagePanel from '@/components/MainPagePanel'
+import AppBackground from '@/components/AppBackground'
+import GameHeader from '@/components/GameHeader'
+import GameKeyboard from '@/components/GameScreen/GameKeyboard'
+import GameBoard from '@/components/GameScreen/GameBoard'
 
 // Game state types
-type CellStatus = 'empty' | 'correct' | 'present' | 'absent' | 'tbd'
+export type CellStatus = 'empty' | 'correct' | 'present' | 'absent' | 'tbd'
 
-interface GameCell {
+export type GameCell = {
 	letter: string
 	feedback: CellStatus
 }
@@ -234,44 +231,6 @@ export default function GameScreen() {
 		return `${mins}:${secs.toString().padStart(2, '0')}`
 	}
 
-	// Keyboard layout
-	const keyboard = [
-		['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-		['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-		['⌫', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER'],
-	]
-
-	// Get color class based on cell status
-	const getCellColorClass = (status: CellStatus) => {
-		switch (status) {
-			case 'correct':
-				return 'bg-green-500 border-green-500 text-white'
-			case 'present':
-				return 'bg-yellow-500 border-yellow-500 text-white'
-			case 'absent':
-				return 'bg-gray-500 border-gray-500 text-white'
-			case 'tbd':
-				return 'bg-gray-800 border-gray-400 text-white'
-			default:
-				return 'bg-transparent border-gray-300 text-black'
-		}
-	}
-
-	// Get keyboard key color class
-	const getKeyColorClass = (key: string) => {
-		const status = keyboardStatus[key]
-		switch (status) {
-			case 'correct':
-				return 'bg-green-500 text-white border-green-500'
-			case 'present':
-				return 'bg-yellow-500 text-white border-yellow-500'
-			case 'absent':
-				return 'bg-gray-500 text-white border-gray-500'
-			default:
-				return 'bg-gray-200 hover:bg-gray-300 text-black border-gray-300'
-		}
-	}
-
 	// Handle keyboard input
 	const handleKeyPress = (key: string) => {
 		if (currentRow >= boardRow) return // Game over
@@ -391,46 +350,13 @@ export default function GameScreen() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+		<AppBackground className="p-4">
 			{/* Animated background elements */}
-			<div className="absolute inset-0 overflow-hidden">
-				{Array.from({ length: 15 }).map((_, i) => (
-					<motion.div
-						key={i}
-						className="absolute opacity-5 text-white font-bold text-4xl"
-						initial={{
-							x: Math.random() * window.innerWidth,
-							y: Math.random() * window.innerHeight,
-							opacity: 0.05,
-						}}
-						animate={{
-							y: [
-								Math.random() * window.innerHeight,
-								Math.random() * window.innerHeight,
-							],
-							opacity: [0.05, 0.1, 0.05],
-						}}
-						transition={{
-							duration: 10 + Math.random() * 20,
-							repeat: Number.POSITIVE_INFINITY,
-							repeatType: 'reverse',
-						}}
-					>
-						{String.fromCharCode(
-							65 + Math.floor(Math.random() * 26),
-						)}
-					</motion.div>
-				))}
-			</div>
+			<AnimatedBackground variant="character" />
 
-			<motion.div
-				className="flex flex-col bg-white/10 backdrop-blur-sm rounded-2xl shadow-2xl w-full max-w-md overflow-hidden min-h-[90vh]"
-				initial={{ opacity: 0, scale: 0.95 }}
-				animate={{ opacity: 1, scale: 1 }}
-				transition={{ duration: 0.5 }}
-			>
+			<MainPagePanel>
 				{/* Header */}
-				<div className="bg-gradient-to-r from-slate-800 to-slate-700 p-4 flex items-center justify-between text-white">
+				<GameHeader>
 					<button className="p-2 rounded-full hover:bg-white/20 transition">
 						<ArrowLeft className="w-5 h-5" />
 					</button>
@@ -473,7 +399,7 @@ export default function GameScreen() {
 					>
 						<Lightbulb size={20} />
 					</button>
-				</div>
+				</GameHeader>
 
 				{/* Round indicator */}
 				<div className="relative py-3 flex justify-center">
@@ -491,98 +417,20 @@ export default function GameScreen() {
 				)}
 
 				{/* Game board */}
-				<div className="p-4 flex flex-col justify-start items-center flex-1">
-					<div
-						className={`grid gap-1.5`}
-						style={{
-							gridTemplateRows: `repeat(${boardRow}, minmax(0, 1fr))`,
-						}}
-					>
-						{board.map((row, rowIndex) => (
-							<div
-								key={rowIndex}
-								className={`grid gap-1.5`}
-								style={{
-									gridTemplateColumns: `repeat(${boardCol}, minmax(0, 1fr))`,
-								}}
-							>
-								{row.map((cell, colIndex) => (
-									<motion.div
-										key={`${rowIndex}-${colIndex}`}
-										className={`w-14 h-14 border-2 flex items-center justify-center text-2xl font-bold ${getCellColorClass(
-											cell.feedback,
-										)}`}
-										initial={{
-											scale: cell.letter ? 0.8 : 1,
-										}}
-										animate={{
-											scale: 1,
-											rotateX:
-												cell.feedback !== 'empty' &&
-												cell.feedback !== 'tbd'
-													? [0, 90, 0]
-													: 0,
-										}}
-										transition={{
-											duration: 0.3,
-											delay: colIndex * 0.1,
-											ease: 'easeInOut',
-										}}
-									>
-										{cell.letter}
-									</motion.div>
-								))}
-							</div>
-						))}
-					</div>
-				</div>
+				<GameBoard
+					board={board}
+					boardCol={boardCol}
+					boardRow={boardRow}
+				/>
 
 				{/* Virtual keyboard */}
-				<div className="p-2 py-4 pt-2 md:p-4">
-					<div className="grid gap-1.5 relative w-full md:w-auto">
-						{isEndGame && (
-							<div className="inset-0 absolute p-4 bg-gray-400 opacity-95  flex items-center justify-center rounded-md">
-								<EndRoundCard
-									isFindSecretWord={
-										endGameCardData.isFindSecretWord
-									}
-									currentRemainingTime={
-										endGameCardData.currentRemainingTime
-									}
-								/>
-							</div>
-						)}
-						{keyboard.map((row, rowIndex) => (
-							<div
-								key={rowIndex}
-								className="flex justify-center gap-1.5 w-full md:w-auto"
-							>
-								{row.map((key) => (
-									<motion.button
-										key={key}
-										onClick={() => handleKeyPress(key)}
-										className={`flex-1 md:flex-auto flex justify-center items-center py-3 sm:py-4 rounded-md font-medium border transition-colors text-center ${
-											key === 'ENTER' || key === '⌫'
-												? 'text-xs'
-												: ''
-										} ${getKeyColorClass(key)}`}
-										whileHover={{ scale: 1.05 }}
-										whileTap={{ scale: 0.95 }}
-									>
-										{key === '⌫' ? (
-											<Delete className="w-6 h-4 " />
-										) : key === 'ENTER' ? (
-											<CornerDownLeft className="w-6 h-4" />
-										) : (
-											key
-										)}
-									</motion.button>
-								))}
-							</div>
-						))}
-					</div>
-				</div>
-			</motion.div>
-		</div>
+				<GameKeyboard
+					isEndGame={isEndGame}
+					endGameCardData={endGameCardData}
+					handleKeyPress={handleKeyPress}
+					keyboardStatus={keyboardStatus}
+				/>
+			</MainPagePanel>
+		</AppBackground>
 	)
 }
