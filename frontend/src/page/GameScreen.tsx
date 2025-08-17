@@ -1,23 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ArrowLeft, Trophy, Clock, Lightbulb } from 'lucide-react'
-import { socket } from '@/lib/socket'
 import { IRoomRules } from '@/types/type'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '@/store/store'
 import { useLocation, useNavigate } from 'react-router'
-import { checkGuess, completeAPuzzle, getBotHint } from '@/apis/apiService'
-import {
-	setCurrentPuzzleIndex,
-	setGameFinished,
-	setPlayerInGame,
-} from '@/store/GameSlice'
-import { useAudioManager } from '@/hooks/useAudioManager'
+import { completeAPuzzle } from '@/apis/apiService'
+
 import AnimatedBackground from '@/components/AnimatedBackground'
 import MainPagePanel from '@/components/MainPagePanel'
 import AppBackground from '@/components/AppBackground'
 import GameHeader from '@/components/GameHeader'
 import GameKeyboard from '@/components/GameScreen/GameKeyboard'
 import GameBoard from '@/components/GameScreen/GameBoard'
+import { useGameSocket } from '@/hooks/useGameSocket'
+import { useGameTimer } from '@/hooks/useGameTimer'
+import useGameHint from '@/hooks/useGameHint'
+import useGameBoard from '@/hooks/useGameBoard'
 
 // Game state types
 export type CellStatus = 'empty' | 'correct' | 'present' | 'absent' | 'tbd'
@@ -28,333 +26,91 @@ export type GameCell = {
 }
 
 export default function GameScreen() {
-	const navigator = useNavigate()
 	const dispatch = useDispatch<AppDispatch>()
+
 	const gameState = useSelector((state: RootState) => state.game)
-	const roomState = useSelector((state: RootState) => state.room)
 
-	const currentPlayerId = useSelector(
-		(state: RootState) => state.room.currentPlayerId,
-	)
 	const gameRule: IRoomRules = useLocation().state
-	// Game state
-	const [currentRow, setCurrentRow] = useState(0)
-	const [currentCol, setCurrentCol] = useState(0)
-	const [board, setBoard] = useState<GameCell[][]>(
-		Array(gameState.puzzles[gameState.currentPuzzleIndex].wordLength + 1)
-			.fill(null)
-			.map(() =>
-				Array(
-					gameState.puzzles[gameState.currentPuzzleIndex].wordLength,
-				)
-					.fill(null)
-					.map(() => ({ letter: '', feedback: 'empty' })),
-			),
-	)
-	const [boardRow, setBoardRow] = useState(
-		gameState.puzzles[gameState.currentPuzzleIndex].wordLength + 1,
-	)
 
-	const [boardCol, setBoardCol] = useState(
-		gameState.puzzles[gameState.currentPuzzleIndex].wordLength,
-	)
-	const [keyboardStatus, setKeyboardStatus] = useState<
-		Record<string, CellStatus>
-	>({})
-	const [timeRemaining, setTimeRemaining] = useState(
-		Number(gameRule.roundTime),
-	)
-	const [isUseActiveHint, setIsUseActiveHint] = useState(false)
-	const [botHint, setBotHint] = useState<string | null>(null)
-	// Timmer state
 	const [isEndGame, setIsEndGame] = useState(false)
 
-	// Current player info
-	const currentPlayer = gameState.playersInGame.find(
-		(p) => p.playerId === currentPlayerId,
-	)
-	const currentRank = currentPlayer?.rank ?? 1
-
-	const isActiveHint =
-		timeRemaining < Number(gameRule.roundTime) / 2 &&
-		!isUseActiveHint &&
-		gameRule.isBotHelper
 	// End game card
 	const [endGameCardData, setEndGameCardData] = useState({
 		isFindSecretWord: false,
 		currentRemainingTime: 0,
 	})
 
-	// Handle audio
-	const { playSFX } = useAudioManager()
+	// Current player info
+	const currentPlayerId = useSelector(
+		(state: RootState) => state.room.currentPlayerId,
+	)
+	const currentPlayer = gameState.playersInGame.find(
+		(p) => p.playerId === currentPlayerId,
+	)
+	const currentRank = currentPlayer?.rank ?? 1
 
-	// Handle Websocket events
-	useEffect(() => {
-		socket.on('nextPuzzle', ({ currentPuzzleIndex, playersInGame }) => {
-			// Hiện endGameCard trước khi chuyển sang puzzle mới
+	const { timeRemaining, setTimeRemaining, formatTime } = useGameTimer({
+		initialTime: Number(gameRule.roundTime),
+		onTimeUp: () => {
+			completeAPuzzle(
+				gameState.gameId as string,
+				currentPlayerId as string,
+				gameState.currentPuzzleIndex,
+				timeRemaining,
+			)
+		},
+		isEndGame,
+	})
+
+	const {
+		board,
+		currentRow,
+		boardCol,
+		boardRow,
+		handleKeyPress,
+		keyboardStatus,
+		initializeNewPuzzle,
+	} = useGameBoard({
+		gameState,
+		timeRemaining,
+		setIsEndGame,
+		setEndGameCardData,
+		currentPlayerId,
+	})
+
+	useGameSocket({
+		gameId: gameState.gameId as string,
+		gameRule: gameRule,
+		currentPuzzleIndex: gameState.currentPuzzleIndex,
+		onNextPuzzle: () => {
 			setIsEndGame(true)
-			setTimeout(() => {
-				dispatch(setCurrentPuzzleIndex(currentPuzzleIndex))
-				dispatch(setPlayerInGame(playersInGame))
 
+			setTimeout(() => {
+				const nextPuzzleIndex = gameState.currentPuzzleIndex + 1
 				setTimeRemaining(Number(gameRule.roundTime))
 				setIsEndGame(false)
-
-				setBoard(
-					Array(gameState.puzzles[currentPuzzleIndex].wordLength + 1)
-						.fill(null)
-						.map(() =>
-							Array(
-								gameState.puzzles[currentPuzzleIndex]
-									.wordLength,
-							)
-								.fill(null)
-								.map(() => ({ letter: '', feedback: 'empty' })),
-						),
-				)
-				setCurrentCol(0)
-				setCurrentRow(0)
-				setKeyboardStatus({})
-				setBotHint(null)
-				setIsUseActiveHint(false)
-				setBoardCol(gameState.puzzles[currentPuzzleIndex].wordLength)
-				setBoardRow(
-					gameState.puzzles[currentPuzzleIndex].wordLength + 1,
+				initializeNewPuzzle(
+					gameState.puzzles[nextPuzzleIndex].wordLength,
 				)
 			}, 2000)
-		})
+		},
+	})
 
-		socket.on('completeAPuzzle', ({ playersInGame }) => {
-			dispatch(setPlayerInGame(playersInGame))
-		})
-
-		socket.on('gameFinished', ({ game }) => {
-			dispatch(setGameFinished(game))
-			navigator(`/result/${gameState.gameId}`)
-		})
-
-		return () => {
-			socket.off('completeAPuzzle')
-			socket.off('nextPuzzle')
-			socket.off('gameFinished')
-		}
-	}, [
-		dispatch,
-		gameRule.roundTime,
-		gameState.currentPuzzleIndex,
-		gameState.gameId,
-		gameState.puzzles,
-		navigator,
-	])
-
-	useEffect(() => {
-		if (gameState.gameId) {
-			socket.emit('subcribeRoom', gameState.gameId)
-		}
-	}, [gameState.gameId])
-
-	const handleUseHint = async () => {
-		if (!isActiveHint) return
-
-		// Lấy previousGuesses từ board
-		const previousGuesses = board
-			.slice(0, currentRow) // chỉ lấy các dòng đã nhập xong
-			.filter((row) =>
-				row.every(
-					(cell) =>
-						cell.letter &&
-						cell.feedback !== 'empty' &&
-						cell.feedback !== 'tbd',
-				),
-			)
-			.map((row) => ({
-				guessWord: row.map((cell) => cell.letter).join(''),
-				feedback: row.map((cell) => cell.feedback),
-			}))
-
-		const wordLength =
-			gameState.puzzles[gameState.currentPuzzleIndex].wordLength
-
-		const res = await getBotHint(
-			gameState.gameId as string,
-			previousGuesses,
-			wordLength,
-		)
-		if (res?.hint) {
-			setBotHint(res.hint)
-			setIsUseActiveHint(true)
-		}
-	}
-
-	// Timer effect
-	useEffect(() => {
-		const timer = setInterval(() => {
-			setTimeRemaining((prev) => {
-				if (prev <= 0) {
-					setEndGameCardData({
-						isFindSecretWord: false,
-						currentRemainingTime: 0,
-					})
-					completeAPuzzle(
-						gameState.gameId as string,
-						currentPlayerId as string,
-						gameState.currentPuzzleIndex,
-						timeRemaining,
-					)
-					setIsEndGame(true)
-					return 0
-				}
-				if (isEndGame) {
-					return prev
-				}
-				return prev - 1
-			})
-		}, 1000)
-
-		return () => {
-			clearInterval(timer)
-			socket.off('startGame')
-		}
-	}, [
-		currentPlayerId,
-		dispatch,
-		gameState.currentPuzzleIndex,
-		gameState.gameId,
-		isEndGame,
+	const { botHint, handleUseHint, isActiveHint } = useGameHint({
 		timeRemaining,
-	])
-
-	// Format time as MM:SS
-	const formatTime = (seconds: number) => {
-		const mins = Math.floor(seconds / 60)
-		const secs = seconds % 60
-		return `${mins}:${secs.toString().padStart(2, '0')}`
-	}
-
-	// Handle keyboard input
-	const handleKeyPress = (key: string) => {
-		if (currentRow >= boardRow) return // Game over
-
-		if (key === '⌫') {
-			// Xóa ký tự
-			playSFX('type_letter')
-			if (currentCol > 0) {
-				const newBoard = [...board]
-				newBoard[currentRow][currentCol - 1] = {
-					letter: '',
-					feedback: 'empty',
-				}
-				setBoard(newBoard)
-				setCurrentCol(currentCol - 1)
-			}
-		} else if (key === 'ENTER') {
-			// Kiểm tra từ
-			playSFX('type_letter')
-			if (currentCol === boardCol) {
-				checkWord()
-				setCurrentRow(currentRow + 1)
-				setCurrentCol(0)
-			}
-		} else if (currentCol < boardCol) {
-			// Nhập ký tự
-			playSFX('type_letter')
-			const newBoard = [...board]
-			newBoard[currentRow][currentCol] = { letter: key, feedback: 'tbd' }
-			setBoard(newBoard)
-			setCurrentCol(currentCol + 1)
-		}
-	}
-
-	// Check word against solution
-	const checkWord = async () => {
-		// Get current word
-		const currentWord = board[currentRow]
-			.map((cell) => cell.letter)
-			.join('')
-
-		const response = await checkGuess(
-			gameState.gameId as string,
-			currentPlayerId as string,
-			gameState.currentPuzzleIndex,
-			currentWord,
-			timeRemaining,
-		)
-
-		if (response?.status === 205) {
-			const newBoard = [...board]
-			newBoard[currentRow] = Array(boardCol).fill({
-				letter: '',
-				feedback: 'empty',
-			})
-
-			setCurrentRow(currentRow)
-			setBoard(newBoard)
-			return
-		}
-
-		const guessRespone = response?.data.guessWord
-			.split('')
-			.map((letter: string, index: number) => ({
-				letter,
-				feedback: response?.data.feedback[index],
-			}))
-
-		const newBoard = [...board]
-		newBoard[currentRow] = guessRespone
-
-		const newKeyboardStatus = { ...keyboardStatus }
-		guessRespone.forEach(
-			(cell: { letter: string; feedback: CellStatus }) => {
-				newKeyboardStatus[cell.letter] = cell.feedback
-			},
-		)
-
-		const isCorrect = guessRespone.every(
-			(cell: { letter: string; feedback: CellStatus }) =>
-				cell.feedback === 'correct',
-		)
-
-		if (isCorrect) {
-			playSFX('solve_secret_word')
-			setEndGameCardData({
-				isFindSecretWord: true,
-				currentRemainingTime: timeRemaining,
-			})
-			setIsEndGame(true)
-			completeAPuzzle(
-				gameState.gameId as string,
-				currentPlayerId as string,
-				gameState.currentPuzzleIndex,
-				timeRemaining,
-			)
-		} else if (currentRow + 1 === boardRow) {
-			playSFX('wrong_secret_word')
-			// Hết lượt mà chưa đúng
-			setEndGameCardData({
-				isFindSecretWord: false,
-				currentRemainingTime: timeRemaining,
-			})
-			setIsEndGame(true)
-			completeAPuzzle(
-				gameState.gameId as string,
-				currentPlayerId as string,
-				gameState.currentPuzzleIndex,
-				timeRemaining,
-			)
-		} else {
-			playSFX('wrong_secret_word')
-		}
-
-		setBoard(newBoard)
-		setKeyboardStatus(newKeyboardStatus)
-	}
+		gameRule,
+		board,
+		currentRow,
+		gameState,
+	})
+	// FIXME: Hint don't disappear when next puzzle
 
 	return (
 		<AppBackground className="p-4">
 			{/* Animated background elements */}
 			<AnimatedBackground variant="character" />
 
-			<MainPagePanel>
+			<MainPagePanel className="min-h-10/12">
 				{/* Header */}
 				<GameHeader>
 					<button className="p-2 rounded-full hover:bg-white/20 transition">
