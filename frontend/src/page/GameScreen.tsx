@@ -17,6 +17,7 @@ import { useGameSocket } from '@/hooks/useGameSocket'
 import { useGameTimer } from '@/hooks/useGameTimer'
 import useGameHint from '@/hooks/useGameHint'
 import useGameBoard from '@/hooks/useGameBoard'
+import { useAudioManager } from '@/hooks/useAudioManager'
 
 // Game state types
 export type CellStatus = 'empty' | 'correct' | 'present' | 'absent' | 'tbd'
@@ -29,6 +30,7 @@ export type GameCell = {
 export default function GameScreen() {
 	const dispatch = useDispatch<AppDispatch>()
 	const navigate = useNavigate()
+	const { playSFX } = useAudioManager()
 
 	const gameState = useSelector((state: RootState) => state.game)
 
@@ -116,7 +118,10 @@ export default function GameScreen() {
 				<GameHeader>
 					<button
 						className="p-2 rounded-full hover:bg-white/20 transition cursor-pointer"
-						onClick={() => navigate('/')}
+						onClick={() => {
+							playSFX('click')
+							navigate('/')
+						}}
 					>
 						<ArrowLeft className="w-5 h-5" />
 					</button>
@@ -154,7 +159,10 @@ export default function GameScreen() {
 					{/* Bot hint button */}
 					<button
 						className="bg-white/20 rounded-full p-2 cursor-pointer disabled:bg-white/10 disabled:text-gray-400 transition-all hover:scale-110 active:scale-95"
-						onClick={handleUseHint}
+						onClick={() => {
+							playSFX('click')
+							handleUseHint()
+						}}
 						disabled={!isActiveHint}
 					>
 						<Lightbulb
