@@ -361,8 +361,11 @@ const runBotForPuzzle = async (gameId, puzzleIndex, botPlayerId, roundTime) => {
 		lastGuess = guess
 
 		try {
+			const baseUrl =
+				process.env.BACKEND_URL ||
+				`http://localhost:${process.env.PORT || 3001}`
 			await axios.post(
-				`https://localhost:${process.env.PORT}/api/game/${gameId}/guess`,
+				`${baseUrl}/api/game/${gameId}/guess`,
 				{
 					playerId: botPlayerId,
 					puzzleIndex,
@@ -409,8 +412,11 @@ const runBotForPuzzle = async (gameId, puzzleIndex, botPlayerId, roundTime) => {
 
 	if (finalBotData && finalPuzzle.puzzleStatus === 'playing') {
 		try {
+			const baseUrl =
+				process.env.BACKEND_URL ||
+				`http://localhost:${process.env.PORT || 3001}`
 			await axios.post(
-				`https://real-unlikely-mastiff.ngrok-free.app/api/game/${gameId}/complete`,
+				`${baseUrl}/api/game/${gameId}/complete`,
 				{
 					playerId: botPlayerId,
 					puzzleIndex,
