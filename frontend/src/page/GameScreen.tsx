@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '@/store/store'
 import { useLocation, useNavigate } from 'react-router'
 import { completeAPuzzle } from '@/apis/apiService'
+import { motion, AnimatePresence } from 'framer-motion'
 
 import AnimatedBackground from '@/components/AnimatedBackground'
 import MainPagePanel from '@/components/MainPagePanel'
@@ -27,6 +28,7 @@ export type GameCell = {
 
 export default function GameScreen() {
 	const dispatch = useDispatch<AppDispatch>()
+	const navigate = useNavigate()
 
 	const gameState = useSelector((state: RootState) => state.game)
 
@@ -103,17 +105,19 @@ export default function GameScreen() {
 		currentRow,
 		gameState,
 	})
-	// FIXME: Hint don't disappear when next puzzle
 
 	return (
 		<AppBackground className="p-4">
 			{/* Animated background elements */}
 			<AnimatedBackground variant="character" />
 
-			<MainPagePanel className="min-h-10/12">
+			<MainPagePanel className="min-h-[90vh] flex flex-col">
 				{/* Header */}
 				<GameHeader>
-					<button className="p-2 rounded-full hover:bg-white/20 transition">
+					<button
+						className="p-2 rounded-full hover:bg-white/20 transition cursor-pointer"
+						onClick={() => navigate('/')}
+					>
 						<ArrowLeft className="w-5 h-5" />
 					</button>
 
@@ -149,11 +153,14 @@ export default function GameScreen() {
 
 					{/* Bot hint button */}
 					<button
-						className="bg-white/20 rounded-full p-2 cursor-pointer disabled:bg-white/10 disabled:text-gray-400"
+						className="bg-white/20 rounded-full p-2 cursor-pointer disabled:bg-white/10 disabled:text-gray-400 transition-all hover:scale-110 active:scale-95"
 						onClick={handleUseHint}
 						disabled={!isActiveHint}
 					>
-						<Lightbulb size={20} />
+						<Lightbulb
+							size={20}
+							className={isActiveHint ? 'text-yellow-300' : ''}
+						/>
 					</button>
 				</GameHeader>
 
@@ -166,11 +173,33 @@ export default function GameScreen() {
 				</div>
 
 				{/* Hiển thị gợi ý bot nếu có */}
-				{botHint && (
-					<div className="text-center text-yellow-300 font-bold py-2">
-						Gợi ý bot: <span className="underline">{botHint}</span>
-					</div>
-				)}
+				<AnimatePresence>
+					{botHint && (
+						<motion.div
+							initial={{ opacity: 0, y: -20, scale: 0.95 }}
+							animate={{ opacity: 1, y: 0, scale: 1 }}
+							exit={{ opacity: 0, y: -10, scale: 0.95 }}
+							className="mx-auto mb-4"
+						>
+							<div className="bg-yellow-400/20 backdrop-blur-md border border-yellow-400/50 rounded-2xl px-6 py-2 flex items-center space-x-3 shadow-lg shadow-yellow-400/10">
+								<div className="bg-yellow-400 rounded-full p-1">
+									<Lightbulb
+										size={16}
+										className="text-black"
+									/>
+								</div>
+								<div className="flex flex-col">
+									<span className="text-[10px] uppercase tracking-wider font-bold text-yellow-200/80 leading-none mb-1">
+										Gợi ý từ Bot
+									</span>
+									<span className="text-xl font-black text-yellow-300 tracking-[0.2em] uppercase leading-none">
+										{botHint}
+									</span>
+								</div>
+							</div>
+						</motion.div>
+					)}
+				</AnimatePresence>
 
 				{/* Game board */}
 				<GameBoard

@@ -1,5 +1,5 @@
 import { getBotHint } from '@/apis/apiService'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function useGameHint({
 	timeRemaining,
@@ -10,6 +10,12 @@ export default function useGameHint({
 }) {
 	const [isUseActiveHint, setIsUseActiveHint] = useState(false)
 	const [botHint, setBotHint] = useState<string | null>(null)
+
+	// Reset hint when puzzle changes
+	useEffect(() => {
+		setBotHint(null)
+		setIsUseActiveHint(false)
+	}, [gameState.currentPuzzleIndex])
 
 	const isActiveHint =
 		timeRemaining < Number(gameRule.roundTime) / 2 &&
