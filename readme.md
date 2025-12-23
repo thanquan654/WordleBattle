@@ -43,8 +43,8 @@ Ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/thanquan654/TTNT_WordleBattle.git
-cd TTNT_WordleBattle
+git clone https://github.com/thanquan654/WordleBattle.git
+cd WordleBattle
 ```
 
 ### 2. Backend Setup
