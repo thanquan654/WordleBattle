@@ -1,105 +1,117 @@
-# TTNT Wordle Battle
+# Wordle Battle
 
-Một dự án Wordle Battle nhiều người chơi, gồm hai phần: **backend** (Node.js/Express/MongoDB) và **frontend** (React/TypeScript/Vite).
+A real-time multiplayer Wordle Battle application. Challenge your friends or play with bots in this competitive twist on the classic word puzzle game.
 
----
+## 🌟 Features
 
-## Yêu cầu hệ thống
+-   **Multiplayer Gameplay:** Real-time battles using Socket.io.
+-   **Game Rooms:** Create and join public or private lobbies.
+-   **Bot Integration:** Play with AI-assisted hints or against bot opponents.
+-   **Leaderboards:** Track scores and round winners dynamically.
+-   **Responsive Design:** Built with React, Tailwind CSS, and Framer Motion for smooth animations.
 
--   **Node.js** >= 18.x
--   **npm** >= 9.x
--   **MongoDB** (chạy local hoặc cloud)
+## 🛠 Tech Stack
 
----
+### Frontend
 
-## Cài đặt
+-   **Framework:** React (Vite)
+-   **Language:** TypeScript
+-   **State Management:** Redux Toolkit
+-   **Styling:** Tailwind CSS, Radix UI
+-   **Animations:** Framer Motion, React Confetti
+-   **Communication:** Socket.io Client
+-   **Audio:** Howler.js
 
-### 1. Clone dự án
+### Backend
+
+-   **Runtime:** Node.js
+-   **Framework:** Express.js
+-   **Database:** MongoDB (Mongoose)
+-   **Communication:** Socket.io
+-   **Architecture:** Controller-Service-Repository pattern (simplified)
+
+## 📋 Prerequisites
+
+Ensure you have the following installed:
+
+-   **Node.js** (v18 or higher)
+-   **npm** or **yarn**
+-   **MongoDB** (running locally or via MongoDB Atlas)
+
+## 🚀 Installation & Setup
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/thanquan654/TTNT_WordleBattle.git
 cd TTNT_WordleBattle
 ```
 
-### 2. Cài đặt backend
+### 2. Backend Setup
+
+Navigate to the backend directory and install dependencies:
 
 ```bash
-cd ./backend
+cd backend
 npm install
 ```
 
-### 3. Cài đặt frontend
-
-```bash
-cd ./frontend
-npm install
-```
-
----
-
-## Thiết lập biến môi trường
-
-### Backend
-
-Tạo file `.env` trong thư mục `backend` với các biến sau:
+Create a `.env` file in the `backend` directory:
 
 ```env
 PORT=3001
 MONGODB_URI=mongodb://localhost:27017/wordle-battle
+# Add any other required backend variables here
 ```
 
--   Thay đổi `MONGODB_URI` nếu bạn dùng Mongo Atlas hoặc cổng khác.
+Start the backend server:
 
-### Frontend
+```bash
+npm run dev
+```
 
-File `.env` trong thư mục `frontend`:
+### 3. Frontend Setup
+
+Open a new terminal, navigate to the frontend directory, and install dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+Create a `.env` file in the `frontend` directory:
 
 ```env
 VITE_BACKEND_URL=http://localhost:3001
 ```
 
--   Nếu backend chạy ở địa chỉ khác, hãy cập nhật lại biến này.
-
----
-
-## Chạy dự án
-
-### 1. Khởi động backend
+Start the frontend development server:
 
 ```bash
-cd ./backend
 npm run dev
 ```
 
-### 2. Khởi động frontend
+Visit `http://localhost:5173` (or the port shown in your terminal) to play!
 
-```bash
-cd ./frontend
-npm run dev
+## 📂 Project Structure
+
 ```
-
--   Truy cập frontend tại: [http://localhost:5173](http://localhost:5173) (hoặc cổng Vite hiển thị).
-
----
-
-## Các thông số cấu hình
-
--   **Thời gian mỗi vòng:** Cấu hình trong giao diện tạo phòng hoặc trong code backend.
--   **Số vòng chơi:** Cấu hình khi tạo phòng.
--   **Danh sách từ:** `backend/wordsList.txt` (có thể thay đổi hoặc mở rộng).
--   **Bot trợ giúp:** Bật/tắt khi tạo phòng.
-
----
-
-## Ghi chú
-
--   Đảm bảo MongoDB đã chạy trước khi khởi động backend.
--   Nếu thay đổi port hoặc địa chỉ backend, hãy cập nhật biến môi trường tương ứng ở cả frontend và backend.
--   Để thêm từ mới, chỉnh sửa file `backend/wordsList.txt`.
-
----
-
-## Thư mục chính
-
--   `backend/`: API, socket, xử lý game, danh sách từ
--   `frontend/`: Giao diện người dùng, kết nối socket, logic client
+WordleBattle/
+├── backend/            # Express server & Game logic
+│   ├── src/
+│   │   ├── controllers/ # Request handlers
+│   │   ├── helpers/     # Game logic & dictionary tools
+│   │   ├── lib/         # Database & Socket setup
+│   │   ├── routers/     # API routes
+│   │   └── schemas/     # Mongoose models
+│   └── wordsList.txt    # Dictionary source
+│
+└── frontend/           # React client
+    ├── src/
+    │   ├── apis/       # API services
+    │   ├── components/ # UI Components (Game, Lobby, Home)
+    │   ├── context/    # React Contexts
+    │   ├── hooks/      # Custom Hooks (Socket, Game logic)
+    │   ├── page/       # Main Route Pages
+    │   └── store/      # Redux Slices
+```
