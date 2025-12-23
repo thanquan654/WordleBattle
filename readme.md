@@ -60,8 +60,8 @@ Create a `.env` file in the `backend` directory:
 
 ```env
 PORT=3001
+BACKEND_URL=http://localhost:3001
 MONGODB_URI=mongodb://localhost:27017/wordle-battle
-# Add any other required backend variables here
 ```
 
 Start the backend server:
