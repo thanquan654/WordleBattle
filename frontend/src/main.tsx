@@ -3,6 +3,7 @@ import './index.css'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { store } from '@/store/store'
 import { Provider } from 'react-redux'
+import { AudioProvider } from './context/AudioContext'
 // Routing
 import HomePage from './page/HomePage.tsx'
 import LobbyScreen from '@/page/LobbyScreen.tsx'
@@ -12,14 +13,16 @@ import NotFoundPage from '@/page/NotFoundPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
 	<Provider store={store}>
-		<BrowserRouter>
-			<Routes>
-				<Route index element={<HomePage />} />
-				<Route path="lobby/:roomId" element={<LobbyScreen />} />
-				<Route path="game/:roomId" element={<GameScreen />} />
-				<Route path="result/:roomId" element={<ResultScreen />} />
-				<Route path="*" element={<NotFoundPage />} />
-			</Routes>
-		</BrowserRouter>
+		<AudioProvider>
+			<BrowserRouter>
+				<Routes>
+					<Route index element={<HomePage />} />
+					<Route path="lobby/:roomId" element={<LobbyScreen />} />
+					<Route path="game/:roomId" element={<GameScreen />} />
+					<Route path="result/:roomId" element={<ResultScreen />} />
+					<Route path="*" element={<NotFoundPage />} />
+				</Routes>
+			</BrowserRouter>
+		</AudioProvider>
 	</Provider>,
 )

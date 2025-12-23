@@ -1,7 +1,9 @@
 // Logic
+import { useEffect } from 'react'
 import Confetti from 'react-confetti'
 import { useGameResult } from '@/hooks/useGameResult'
 import { useConfettiEffect } from '@/hooks/useConfettiEffect'
+import { useAudioManager } from '@/hooks/useAudioManager'
 
 // UI Components
 import AppBackground from '@/components/AppBackground'
@@ -13,6 +15,14 @@ import ResultSection2Players from '@/components/ResultScreen/ResultSection2Playe
 export default function ResultScreen() {
 	const { players, topPlayers, totalRounds } = useGameResult()
 	const { showConfetti, windowSize } = useConfettiEffect()
+	const { playBGM, stopBGM } = useAudioManager()
+
+	useEffect(() => {
+		playBGM('bgm_result')
+		return () => {
+			stopBGM()
+		}
+	}, [playBGM, stopBGM])
 
 	return (
 		<AppBackground className="px-4 pt-4">
