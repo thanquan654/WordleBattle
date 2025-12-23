@@ -118,13 +118,13 @@ function findBestGuessWithEntropy(fullWordSet, guesses, wordLength) {
 	if (guesses.length === 0) {
 		switch (wordLength) {
 			case 3:
-				return 'EAS'
+				return 'EAT'
 			case 4:
-				return 'TALE'
+				return 'LATE'
 			case 5:
-				return 'RAISE'
+				return 'CRANE'
 			case 6:
-				return 'SATIRE'
+				return 'RETAIN'
 		}
 	}
 
